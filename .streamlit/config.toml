@@ -1,0 +1,15 @@
+# Streamlit Settings
+[server]
+# Disable welcome message
+headless = true
+
+[browser]
+# Disable collecting usage statistics
+gatherUsageStats = false
+
+[theme]
+primaryColor="#1f78b4"
+backgroundColor="#FFFFFF"
+secondaryBackgroundColor="#F0F2F6"
+textColor="#31333F"
+font="sans serif"
