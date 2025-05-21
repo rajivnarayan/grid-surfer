@@ -1,82 +1,108 @@
 import streamlit as st
 from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder, StAggridTheme
 import pandas as pd
+from pandas.api.types import (
+    is_categorical_dtype,
+    is_datetime64_any_dtype,
+    is_numeric_dtype,
+    is_object_dtype,
+)
+import json
 import numpy as np
 import requests
 import re
-from decimal import Decimal
+import io
+from collections import namedtuple
+from vega_datasets import local_data
 import altair as alt
-    
+from src.ui import gsutils as gsu
+from src.ui import dotplot, distplot, xyplot
+
 @st.cache_data
-def load_data(file_path):
-    # auto-detects csv or txt
-    df=pd.read_csv(file_path, sep=None)
-    #st.toast('read file')
+def read_data(fd, file_type):
+    if file_type=='text/csv':
+        df = pd.read_csv(fd)
+    elif file_type in ['text/plain', 'text/tab-separated-values'] :
+        df = pd.read_csv(fd, sep='\t')
+    elif file_type=='application/json':
+        df = pd.json_normalize(json.load(fd))
+    else:
+        st.error(f"Unsupported file format: {file_type}")
     return df
 
-def format_float(f):
-    d=Decimal(str(f));
-    return d.quantize(Decimal(1)) if d ==d.to_integral() else d.normalize()
-
-def nlogp(p: float, base:int=10) -> float:
-    min_nz_p=0.01*np.min(p[p]>0)
-    return -np.log(np.clip(p, min_nz_p, 1))/np.log(base)
-
-def get_axis_scale(scale_str):
-    """
-    This function takes a scale string as input and returns an Altair Scale object based on the provided scale type.
+@st.cache_data
+def data_loader(uploaded_file):
     
-    Parameters:
-    scale_str (str): A string representing the scale type. It can be one of the following:
-    - 'linear': Linear scale
-    - 'log10': Logarithmic scale with base 10
-    - 'log2': Logarithmic scale with base 2
-    
-    Returns:
-    alt.Scale: An Altair Scale object configured according to the specified scale type.
-    """
-    scale_lut={'linear': {'type':'linear'},
-    'log10' : {'type':'log', 'base':10},
-    'log2' : {'type':'log', 'base':2}
-    }
-    return alt.Scale(**scale_lut[scale_str])
+    if isinstance(uploaded_file, io.BytesIO):
+        try:
+            df = read_data(uploaded_file, uploaded_file.type)
+        except Exception as e:
+            st.error("An error occured loading the file.")
+            st.exception(e) 
+    elif isinstance(uploaded_file, tuple):
+        
+        if uploaded_file.source == 'vega-dataset':
+            df = local_data(uploaded_file.name)
+        elif uploaded_file.source == 'local-dataset':                
+            try:
+                df = read_data(open(uploaded_file.file), uploaded_file.type)
+            except Exception as e:
+                st.error("An error occured loading the file.")
+                st.exception(e)
+    return df
 
-def render_body(data_file, h_sidebar):
+def render_body(data_file, h_data_options):
     # Load data
     if data_file is not None:
-        df=load_data(data_file) 
+        df_all = data_loader(data_file)
+        with h_data_options:            
+            df = filter_dataframe(df_all)
 
         # Data table
-        grid_return=render_grid(df, h_sidebar)
+        grid_return = render_grid(df, h_data_options)
     
-
         # Visualization selector
-        # Note: st.tabs does not support independent rendering
-        plot_select=st.radio("Plots",
-                              ["Histogram", "Dot", "Scatter"],
-                              index=0,
-                              horizontal=True,
-                              label_visibility='collapsed')
-        
+        # Use st.radio since st.tabs do not support independent rendering
+        plot_select = st.pills("Plots",
+                              ["Describe", "Histogram", "Dot", "Scatter"],
+                              default='Describe',
+                              label_visibility = 'collapsed')
+        if plot_select=='Describe':
+            ctypes = gsu.get_df_column_types(grid_return.data)
+            df_desc_num = (df
+                           .loc[:, ctypes['num_columns']]
+                           .describe()
+                           .T
+                           .rename_axis('field')
+                           .style.format(precision=2)                           
+                           )
+            df_desc_cat = (df
+                           .loc[:, ctypes['cat_columns']]
+                           .describe()
+                           .T
+                           .rename_axis('field')
+                           .style.format(precision=2)
+                )
+            tab_num, tab_cat = st.tabs(['Numeric', 'Categorical'])
+            tab_num.dataframe(df_desc_num, use_container_width=False)
+            tab_cat.dataframe(df_desc_cat, use_container_width = False)
         if plot_select=='Histogram':
-            # Distribution plot
-            chart_dist=render_dist_plot(grid_return)
+            # Histogram
+            chart_dist = distplot.make_dist_plot(grid_return)
         elif plot_select=='Dot':
-            # Bar plot
-            chart_bar=render_dot_plot(grid_return)            
+            # Dot plot
+            chart_dot = dotplot.make_dot_plot(grid_return)            
         elif plot_select=='Scatter':
             # Scatter plot
-            chart_xy=render_xy_plot(grid_return)            
-        else:
-            pass            
+            chart_xy = xyplot.make_xy_plot(grid_return)            
 
     return None
 
-def render_grid(df, h_sidebar):
+def render_grid(df, h_data_options):
     """Render Grid"""
     # Infer basic colDefs from dataframe types
-    gb=GridOptionsBuilder.from_dataframe(df)
-    opt={"rowSelection": {"mode": "multiRow"}}
+    gb = GridOptionsBuilder.from_dataframe(df)
+    opt = {"rowSelection": {"mode": "multiRow"}}
     gb.configure_grid_options(**opt)
     # customize gridOptions
     gb.configure_default_column(
@@ -86,26 +112,26 @@ def render_grid(df, h_sidebar):
         filterable=True,        
         groupable=True,
         editable=False)        
-    # Note the sidebar only available with the enterprise version
+    # Note the sidebar is only available with the enterprise version
     # i.e. set enable_enterprise_modules=True in AgGrid() call
     gb.configure_side_bar(filters_panel=True, columns_panel=True)
     # set precision of numeric columns
     for f in df.dtypes[df.dtypes=='float64'].index:
         gb.configure_column(f, type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=2)
-    gridOptions=gb.build()
-    column_defs=gridOptions['columnDefs']
+    gridOptions = gb.build()
+    column_defs = gridOptions['columnDefs']
     # Set all columns to be filterable
     for col in column_defs:
-        col['filter']=True        
-    with h_sidebar:  
-        columns_to_show=st.multiselect('Grid Columns:', options=df.columns, default=df.columns)
+        col['filter'] = True        
+    with h_data_options: 
+        columns_to_show = st.multiselect('Columns to display:', options=df.columns, default=df.columns)
 
     columns_to_hide=set(df.columns).difference(columns_to_show)
     for col in column_defs:
         if col['headerName'] in columns_to_hide:
             col['hide']=True
 
-    grid=AgGrid(df, 
+    grid = AgGrid(df, 
                 gridOptions=gridOptions,
                 fit_columns_on_grid_load=True,
                 enable_enterprise_modules=False,
@@ -113,327 +139,80 @@ def render_grid(df, h_sidebar):
                 data_return_mode=DataReturnMode.FILTERED_AND_SORTED)    
     return grid
 
-def get_df_column_types(df):
-    is_numeric=df.dtypes!='object'
-    column_types={}
-    column_types['all_columns']=df.columns
-    column_types['num_columns']=df.columns[is_numeric].tolist()
-    column_types['cat_columns']=df.columns[~is_numeric].tolist()
-    return column_types
 
-def render_xy_plot(grid_return):
-    """ Plot scatter
+def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
-    ctypes=get_df_column_types(grid_return.data)
-    h_options, h_main=st.columns([0.20, 0.80], gap='medium')
-    # settings and options
-    picks, opts_mark, opts_scale=render_xy_options(h_options, ctypes)
+    Adds a UI on top of a dataframe to let viewers filter columns
 
-    # main viz        
-    with h_main:
-        mark_kwds=opts_mark            
-        kwds={'x' : alt.X(picks['x_axis'], 
-                    scale=get_axis_scale(opts_scale['x_scale']),
-                    axis=alt.Axis(tickCount=9, format='2.4g')), 
-                'y': alt.Y(picks['y_axis'], 
-                    scale=get_axis_scale(opts_scale['y_scale']),
-                    axis=alt.Axis(tickCount=9, format='2.4g')),
-                }
-        tooltips=picks['add_tooltips'] or []
-        select_fields=[]
-        facet_header=alt.Header(titleFontSize=20, labelFontSize=20, 
-                                    labelAnchor='middle', 
-                                    labelColor='blue', 
-                                    labelFontWeight='normal',
-                                    titleFontWeight='bold',
-                                    titleAnchor='middle', 
-                                    labelAlign='left')
-        
-        if picks['facet_by_column'] is not None:
-            kwds['column']=alt.Facet(picks['facet_by_column'], header=facet_header)
-            #tooltips.extend([picks['column']])
+    Args:
+        df (pd.DataFrame): Original dataframe
 
-        if picks['facet_by_row'] is not None:
-            kwds['row']=alt.Facet(picks['facet_by_row'], header=facet_header)
-            #tooltips.extend([picks['row']])
-
-        if picks['color_by'] is not None:
-            kwds['color']={"field": picks['color_by'], "scale": {"scheme": "tableau10"}}
-            tooltips.extend([picks['color_by']])
-            select_fields.extend([picks['color_by']])
-
-        if picks['size_by'] is not None:
-            kwds['size']=picks['size_by']
-            tooltips.extend([picks['size_by']])
-            select_fields.extend([picks['size_by']])
-
-        if picks['shape_by'] is not None:                
-            kwds['shape']=picks['shape_by']
-            tooltips.extend([picks['shape_by']])
-            select_fields.extend([picks['shape_by']])
-
-        tooltips.extend([
-                alt.Tooltip(picks['x_axis'], format="0.2f"),
-                alt.Tooltip(picks['y_axis'], format="0.2f")])
-
-        kwds['tooltip']=tooltips
-        
-        if select_fields:
-            selection=alt.selection_multi(fields=select_fields)
-        else:
-            selection=alt.selection_multi()
-        
-        chart=(
-            alt.Chart(data=grid_return.data)
-            .mark_point(**mark_kwds)
-            .encode(**kwds)
-            .configure_axis(labelFontSize=20, titleFontSize=20, titleFontWeight='bold')
-            .add_selection(selection)
-            .transform_filter(selection)
-            )                                                        
-        st.altair_chart(chart, use_container_width=False)
-    return chart
-
-def render_dot_plot(grid_return):
-    """"""
-    ctypes=get_df_column_types(grid_return.data)
-    h_options, h_main=st.columns([0.20, 0.80], gap='medium')
-    # settings and options
-    picks, opts_mark, opts_scale=render_dot_options(h_options, ctypes)
-
-    # main viz        
-    with h_main:
-        mark_kwds=opts_mark            
-        kwds={'x' : alt.X(picks['x_axis']),
-                'y': alt.Y(picks['y_axis'])
-                }
-        tooltips=picks.get('add_tooltips', [])
-        select_fields=[]
-        facet_header=alt.Header(titleFontSize=20, labelFontSize=20, 
-                                    labelAnchor='middle', 
-                                    labelColor='blue', 
-                                    labelFontWeight='normal',
-                                    titleFontWeight='bold',
-                                    titleAnchor='middle', 
-                                    labelAlign='left')
-        
-        if picks['facet_by_column'] is not None:
-            kwds['column']=alt.Facet(picks['facet_by_column'], header=facet_header)
-            #tooltips.extend([picks['column']])
-
-        if picks['facet_by_row'] is not None:
-            kwds['row']=alt.Facet(picks['facet_by_row'], header=facet_header)
-            #tooltips.extend([picks['row']])
-
-        if picks['color_by'] is not None:
-            kwds['color']={"field": picks['color_by'], "scale": {"scheme": "tableau10"}}
-            tooltips.extend([picks['color_by']])
-            select_fields.extend([picks['color_by']])
-
-        tooltips.extend([
-                alt.Tooltip(picks['x_axis']),
-                alt.Tooltip(picks['y_axis'], format="0.2f")])
-
-        kwds['tooltip']=tooltips
-        
-        if select_fields:
-            selection=alt.selection_multi(fields=select_fields)
-        else:
-            selection=alt.selection_multi()
-        
-        chart=(
-            alt.Chart(data=grid_return.data)
-            .mark_point(**mark_kwds)
-            .encode(**kwds)
-            .configure_axis(labelFontSize=20, titleFontSize=20, titleFontWeight='bold')
-            .add_selection(selection)
-            .transform_filter(selection)
-            )                                                        
-        st.altair_chart(chart, use_container_width=False)
-    return chart
-
-
-def render_dist_plot(grid_return):
-    """Distribution Plot"""
-    ctypes=get_df_column_types(grid_return.data)
-    h_options, h_main=st.columns([0.20, 0.80], gap='medium')
-    # settings and options
-    picks, opts_mark, opts_scale=render_dist_options(h_options, ctypes)
-
-    # main viz        
-    with h_main:
-        mark_kwds=opts_mark            
-        kwds={'x' : alt.X(picks['x_axis']).bin(maxbins=picks['bins']),
-                'y': alt.Y('count()').stack(None)
-                }
-        tooltips=picks.get('add_tooltips', [])
-        select_fields=[]
-        facet_header=alt.Header(titleFontSize=20, labelFontSize=20, 
-                                    labelAnchor='middle', 
-                                    labelColor='blue', 
-                                    labelFontWeight='normal',
-                                    titleFontWeight='bold',
-                                    titleAnchor='middle', 
-                                    labelAlign='left')
-        
-        if picks['facet_by_column'] is not None:
-            kwds['column']=alt.Facet(picks['facet_by_column'], header=facet_header)
-            #tooltips.extend([picks['column']])
-
-        if picks['facet_by_row'] is not None:
-            kwds['row']=alt.Facet(picks['facet_by_row'], header=facet_header)
-            #tooltips.extend([picks['row']])
-
-        if picks['color_by'] is not None:
-            kwds['color']={"field": picks['color_by'], "scale": {"scheme": "tableau10"}}
-            tooltips.extend([picks['color_by']])
-            select_fields.extend([picks['color_by']])
-
-        tooltips.extend([
-                alt.Tooltip(picks['x_axis'])])
-
-        kwds['tooltip']=tooltips
-        
-        if select_fields:
-            selection=alt.selection_multi(fields=select_fields)
-        else:
-            selection=alt.selection_multi()
-        
-        chart=(
-            alt.Chart(data=grid_return.data)
-            .mark_bar(**mark_kwds)
-            .encode(**kwds)
-            .configure_axis(labelFontSize=20, titleFontSize=20, titleFontWeight='bold')
-            .add_selection(selection)
-            .transform_filter(selection)
-            )                                                        
-        st.altair_chart(chart, use_container_width=False)
-    return chart
-
-def pick_if_present(items, to_check):
-    items_found=set(items).intersection(set(to_check))      
-    pick=items.index(next(iter(items_found or []), items[0]))
-    return pick, items_found
-
-def render_xy_options(h_options, ctypes):
-
-    mark_props={
-        'opacity' : {'min_value' : 0.0, 'max_value': 1.0, 'step' : 0.1, 'value' : 0.7},
-        'size' : {'min_value' : 0, 'max_value' : 500, 'step' : 10, 'value' : 30},
-        'strokeWidth' : {'min_value' : 0.0, 'max_value' : 10.0, 'step' : 0.5, 'value' : 2.0},
-        'shape' : {'value': 'circle'},
-        'color' : {'value': '#7570b3'},  
-        'filled': {'value': True}
-    }
-    scale_props={
-        'x_scale' : {'options' : ['linear', 'log2', 'log10'], 'index': 0},
-        'y_scale' : {'options' : ['linear', 'log2', 'log10'], 'index': 0}
-    }
-
-    opts_mark={}
-    opts_scale={}
+    Returns:
+        pd.DataFrame: Filtered dataframe
     
-    names_tocheck=['gene_name', 'gene_symbol', 'name', 'treatment', 'target_name']
-    x_to_check=['x', 'treatment', 'group']
-    y_to_check=['y', 'ss_ngene']
-    names_list=set([e for e in ctypes['cat_columns'] for n in names_tocheck if n in e])       
-    x_list=set(ctypes['num_columns']).intersection(set(x_to_check)) 
-    y_list=set(ctypes['num_columns']).intersection(set(y_to_check))
-    
-    default_tooltip=next(iter(names_list or []), None)      
-    #default_x=ctypes['num_columns'].index(next(iter(x_list or []), ctypes['num_columns'][0]))              
-    default_x, x_found=pick_if_present(ctypes['num_columns'], x_to_check)
-    default_y, y_found=pick_if_present(ctypes['num_columns'], y_to_check)
-    #default_y=ctypes['num_columns'].index(next(iter(y_list or []), ctypes['num_columns'][0]))
+    See: https://blog.streamlit.io/auto-generate-a-dataframe-filtering-ui-in-streamlit-with-filter_dataframe/
+    """
+    modify = st.checkbox("Add filters")
 
-    params={}
+    if not modify:
+        return df
 
-    with h_options.container():
-        with st.popover('Settings :material/tune:'):
-            # scale properties
-            opts_scale['x_scale']=st.selectbox('X-Axis Scale:', **scale_props['x_scale'])
-            opts_scale['y_scale']=st.selectbox('Y-Axis Scale:', **scale_props['y_scale'])
-            # mark properties
-            opts_mark['opacity']=st.slider('Opacity:', **mark_props['opacity'])
-            opts_mark['size']=st.slider('Size:', **mark_props['size'])
-            opts_mark['strokeWidth']=st.slider('Stroke Width:', **mark_props['strokeWidth'])
-            opts_mark['color']=st.color_picker('Color:', **mark_props['color'])
-            opts_mark['filled']=st.checkbox('Fill Markers:', **mark_props['filled'])
+    df = df.copy()
 
-        params['x_axis']=st.selectbox('X-Axis:', ctypes['num_columns'], index=default_x)
-        params['y_axis']=st.selectbox('Y-Axis:', ctypes['num_columns'], index=default_y)
-        params['color_by']=st.selectbox('Color:', ctypes['cat_columns'], index=None)
-        params['size_by']=st.selectbox('Size:', ctypes['all_columns'], index=None)
-        params['shape_by']=st.selectbox('Shape:', ctypes['all_columns'], index=None)
-        params['facet_by_column']=st.selectbox('Column Facet:', ctypes['cat_columns'], index=None)
-        params['facet_by_row']=st.selectbox('Row Facet:', ctypes['cat_columns'], index=None)
-        params['add_tooltips']=st.multiselect('Tooltips:', ctypes['all_columns'], default=names_list)
+    # Try to convert datetimes into a standard format (datetime, no timezone)
+    for col in df.columns:
+        if is_object_dtype(df[col]):
+            try:
+                df[col] = pd.to_datetime(df[col])
+            except Exception:
+                pass
 
-    return (params, opts_mark, opts_scale)
+        if is_datetime64_any_dtype(df[col]):
+            df[col] = df[col].dt.tz_localize(None)
 
-def render_dot_options(h_options, ctypes):
-    """Get parameters and options for distribution plots"""
-    names_tocheck=['gene_name', 'gene_symbol', 'name', 'treatment', 'target_name']
-    x_to_check=['x', 'cc_q75']
-    y_to_check=['y', 'ss_ngene']
-    names_list=set([e for e in ctypes['cat_columns'] for n in names_tocheck if n in e])  
-    #x_list=set(ctypes['cat_columns']).intersection(set(x_to_check))      
-    #y_list=set(ctypes['num_columns']).intersection(set(y_to_check))
-    
-    default_tooltip=next(iter(names_list or []), None)                
-    #default_x=ctypes['cat_columns'].index(next(iter(x_list or []), ctypes['cat_columns'][0]))
-    #default_y=ctypes['num_columns'].index(next(iter(y_list or []), ctypes['num_columns'][0]))
-    default_x, _=pick_if_present(ctypes['cat_columns'], x_to_check)
-    default_y, _=pick_if_present(ctypes['num_columns'], y_to_check)
-    params={}
-    opts_mark={}
-    opts_scale={}
-    
-    with h_options.container():
-        with st.popover('Settings :material/tune:'):
-            # scale properties
-            opts_scale['x_scale']=st.selectbox('X-Axis Scale:', 
-                                                 options=['linear', 'log2', 'log10'], 
-                                                 index=0)
-            opts_scale['y_scale']=st.selectbox('Y-Axis Scale:', 
-                                                 options=['linear', 'log2', 'log10'], 
-                                                 index=0)
-            # mark properties
-            opts_mark['color']=st.color_picker('Color:', value='#4e79a7')
+    modification_container = st.container()
 
-        params['x_axis']=st.selectbox('X-Axis:', ctypes['cat_columns'], index=default_x)
-        params['y_axis']=st.selectbox('Y-Axis:', ctypes['num_columns'], index=default_y)
-        params['color_by']=st.selectbox('Color:', ctypes['cat_columns'], index=None)
-        params['facet_by_column']=st.selectbox('Column Facet:', ctypes['cat_columns'], index=None)
-        params['facet_by_row']=st.selectbox('Row Facet:', ctypes['cat_columns'], index=None)
+    with modification_container:
+        to_filter_columns = st.multiselect("Filter dataframe on", df.columns)
+        for column in to_filter_columns:
+            left, right = st.columns((1, 20))
+            # Treat columns with < 10 unique values as categorical
+            if is_categorical_dtype(df[column]) or df[column].nunique() < 10:
+                user_cat_input = right.multiselect(
+                    f"Values for {column}",
+                    df[column].unique(),
+                    default=list(df[column].unique()),
+                )
+                df = df[df[column].isin(user_cat_input)]
+            elif is_numeric_dtype(df[column]):
+                _min = float(df[column].min())
+                _max = float(df[column].max())
+                step = (_max - _min) / 100
+                user_num_input = right.slider(
+                    f"Values for {column}",
+                    min_value=_min,
+                    max_value=_max,
+                    value=(_min, _max),
+                    step=step,
+                )
+                df = df[df[column].between(*user_num_input)]
+            elif is_datetime64_any_dtype(df[column]):
+                user_date_input = right.date_input(
+                    f"Values for {column}",
+                    value=(
+                        df[column].min(),
+                        df[column].max(),
+                    ),
+                )
+                if len(user_date_input) == 2:
+                    user_date_input = tuple(map(pd.to_datetime, user_date_input))
+                    start_date, end_date = user_date_input
+                    df = df.loc[df[column].between(start_date, end_date)]
+            else:
+                user_text_input = right.text_input(
+                    f"Substring or regex in {column}",
+                )
+                if user_text_input:
+                    df = df[df[column].astype(str).str.contains(user_text_input)]
 
-    return (params, opts_mark, opts_scale)
-
-def render_dist_options(h_options, ctypes):
-    """Get parameters and options for distribution plots"""
-    names_tocheck=['gene_name', 'gene_symbol', 'name', 'treatment', 'target_name']
-    x_to_check=['x', 'cc_q75']
-    names_list=set([e for e in ctypes['cat_columns'] for n in names_tocheck if n in e])  
-    
-    default_tooltip=next(iter(names_list or []), None)                
-    default_x, x_found=pick_if_present(ctypes['num_columns'], x_to_check)
-    params={}
-    opts_mark={}
-    opts_scale={}
-    
-    with h_options.container():
-        with st.popover('Settings :material/tune:'):
-            # scale properties
-            opts_scale['y_scale']=st.selectbox('Y-Axis Scale:', 
-                                                 options=['linear', 'log2', 'log10'], 
-                                                 index=0)
-            # mark properties
-            opts_mark['color']=st.color_picker('Color:', value='#4e79a7')
-
-        params['x_axis']=st.selectbox('X-Axis:', ctypes['num_columns'], index=default_x)
-        params['bins']=st.slider('Bins:', min_value=5, max_value=200, step=5, value=30 )
-        params['color_by']=st.selectbox('Color:', ctypes['cat_columns'], index=None)
-        params['facet_by_column']=st.selectbox('Column Facet:', ctypes['cat_columns'], index=None)
-        params['facet_by_row']=st.selectbox('Row Facet:', ctypes['cat_columns'], index=None)
-
-    return (params, opts_mark, opts_scale)
+    return df
