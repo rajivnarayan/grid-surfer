@@ -1,7 +1,40 @@
 import altair as alt
 import numpy as np
 import pandas as pd
+import streamlit as st
 from decimal import Decimal
+
+def init_custom_style():
+    """Custom CSS styling for widgets
+    """
+    st.markdown(
+    """<style>
+        /*@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap'); */
+
+        html, body, [class*="css"] {
+            font-family: 'Roboto', sans-serif; 
+            font-size: 16px;
+            font-weight:400;
+            color: #091747;
+        }
+        [alt=Logo] {
+            display: block;
+            margin-left:48px;
+            margin-right:auto;
+            width: 400px;
+        }
+        /* Multiselect format*/
+        .stMultiSelect > label {
+            font-size: 1.0rem; 
+            font-weight: bold; 
+        } 
+        .stMultiSelect [data-baseweb=select] span{
+            height: px;   
+            padding-top: 0px;    
+            font-size: 0.8rem;
+        }
+    </style>
+    """, unsafe_allow_html=True)    
 
 def get_df_column_types(df: pd.DataFrame) -> dict:
     is_numeric=df.dtypes!='object'
@@ -48,7 +81,7 @@ def get_axis_scale(scale_str: str) -> alt.Scale:
     'log10' : {'type':'log', 'base':10},
     'log2' : {'type':'log', 'base':2}
     }
-    return alt.Scale(**scale_lut[scale_str])
+    return alt.Scale(**scale_lut[scale_str], zero=False)
 
 
 def format_float(f):

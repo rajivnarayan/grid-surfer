@@ -15,7 +15,7 @@ import io
 from collections import namedtuple
 from vega_datasets import local_data
 import altair as alt
-from src.ui import gsutils as gsu
+from src.ui import gs_utils as gsu
 from src.ui import dotplot, distplot, xyplot
 
 @st.cache_data
@@ -40,9 +40,8 @@ def data_loader(uploaded_file):
             st.error("An error occured loading the file.")
             st.exception(e) 
     elif isinstance(uploaded_file, tuple):
-        
         if uploaded_file.source == 'vega-dataset':
-            df = local_data(uploaded_file.name)
+            df = local_data(uploaded_file.file)
         elif uploaded_file.source == 'local-dataset':                
             try:
                 df = read_data(open(uploaded_file.file), uploaded_file.type)
@@ -51,8 +50,9 @@ def data_loader(uploaded_file):
                 st.exception(e)
     return df
 
-def render_body(data_file, h_data_options):
+def render_body(h_data_options):
     # Load data
+    data_file = st.session_state['data_file']
     if data_file is not None:
         df_all = data_loader(data_file)
         with h_data_options:            
@@ -62,7 +62,7 @@ def render_body(data_file, h_data_options):
         grid_return = render_grid(df, h_data_options)
     
         # Visualization selector
-        # Use st.radio since st.tabs do not support independent rendering
+        # Use pills since st.tabs do not support independent rendering
         plot_select = st.pills("Plots",
                               ["Describe", "Histogram", "Dot", "Scatter"],
                               default='Describe',
@@ -98,7 +98,8 @@ def render_body(data_file, h_data_options):
 
     return None
 
-def render_grid(df, h_data_options):
+def render_grid(df: pd.DataFrame,
+                h_data_options) -> AgGrid:
     """Render Grid"""
     # Infer basic colDefs from dataframe types
     gb = GridOptionsBuilder.from_dataframe(df)
@@ -109,7 +110,7 @@ def render_grid(df, h_data_options):
         min_column_width=25,
         alwaysShowHorizontalScroll=True,
         alwaysShowVerticalScroll=False,
-        filterable=True,        
+        filterable=False,        
         groupable=True,
         editable=False)        
     # Note the sidebar is only available with the enterprise version
@@ -122,7 +123,7 @@ def render_grid(df, h_data_options):
     column_defs = gridOptions['columnDefs']
     # Set all columns to be filterable
     for col in column_defs:
-        col['filter'] = True        
+        col['filter'] = False        
     with h_data_options: 
         columns_to_show = st.multiselect('Columns to display:', options=df.columns, default=df.columns)
 
@@ -135,7 +136,6 @@ def render_grid(df, h_data_options):
                 gridOptions=gridOptions,
                 fit_columns_on_grid_load=True,
                 enable_enterprise_modules=False,
-                theme='fresh', 
                 data_return_mode=DataReturnMode.FILTERED_AND_SORTED)    
     return grid
 
