@@ -3,13 +3,35 @@
 # Disable welcome message
 headless = true
 
+# The base path for the URL where Streamlit should be served from.
+# Default: ""
+#baseUrlPath = "/app"
+
+# Automatically rerun script when the file is modified on disk.
+# Default: false
+runOnSave = true
+
+# The port where the server will listen for browser connections.
+# Don't use port 3000 which is reserved for internal development.
+# Default: 8501
+port = 8501
+
+# Max size, in megabytes, for files uploaded with the file_uploader.
+# Default: 200
+maxUploadSize = 200
+
 [browser]
 # Disable collecting usage statistics
 gatherUsageStats = false
 
 [theme]
+base = 'light'
 primaryColor="#1f78b4"
 backgroundColor="#FFFFFF"
 secondaryBackgroundColor="#F0F2F6"
 textColor="#31333F"
-font="sans serif"
+#font="sans serif"
+
+
+
+
