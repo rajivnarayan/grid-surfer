@@ -1,6 +1,14 @@
-# GridSurfer
+# Grid Surfer
 
-A Streamlit Web application for exploring tablular data.
+A web application for exploring tablular datasets.
+
+## Features
+
+- Supports tabular data in CSV, TSV and JSON formats
+- View the data in a filterable and sortable grid
+- Get descriptive statistics on numeric and categorical fields
+- Visualize univariate and bi-variate distributions via histograms, dot and scatter plots
+- Apply grouping and faceting to charts
 
 ## Quickstart
 
@@ -8,6 +16,3 @@ From the root folder of this repository on your local machine run:
 ```
     uv run streamlit run app.py
 ```
-
-## Credits
-This package was created using the [rajivnarayan/cookiecutter_streamlit_app](https://github.com/rajivnarayan/cookiecutter-streamlit) project template. 
