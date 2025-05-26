@@ -1,0 +1,37 @@
+{
+    "Anscombe's Quartet": {
+        "source": "vega-dataset",
+        "type": null,
+        "file": "anscombe"
+    },
+    "Barley Yield": {
+        "source": "vega-dataset",
+        "type": null,
+        "file": "barley"
+    },
+    "Cars": {
+        "source": "vega-dataset",
+        "type": null,
+        "file": "cars"
+    },
+    "Differential Gene Expression": {
+        "source": "local-dataset",
+        "type": "text/csv",
+        "file": "data/GSE25724_top_table_clean.csv"
+    },
+    "GapMinder Health-Income": {
+        "source": "local-dataset",
+        "type": "text/csv",
+        "file": "data/gapminder-health-income.csv"
+    },
+    "Iris Species": {
+        "source": "vega-dataset",
+        "type": null,
+        "file": "iris"
+    },
+    "Palmer Penguins": {
+        "source": "local-dataset",
+        "type": "application/json",
+        "file": "data/penguins.json"
+    }
+}
