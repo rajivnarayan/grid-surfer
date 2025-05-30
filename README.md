@@ -2,7 +2,7 @@
 
 A web application for exploratory analysis of tabular datasets.
 
-[Demo](https://github.com/rajivnarayan/grid-surfer)
+[Demo](https://grid-surfer.streamlit.app/)
 
 ## Features
 
