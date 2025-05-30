@@ -13,7 +13,7 @@ def make_xy_plot(grid_return: AgGrid):
     """ Render scatter plot in ui
     """
     ctypes = gsu.get_df_column_types(grid_return.data)
-    h_options, h_main = st.columns([0.25, 0.75], gap='medium')
+    h_options, h_main = st.columns([0.3, 0.7], gap='medium')
     # settings and options
     with h_options:
         opts, opts_type = get_xy_options(ctypes)

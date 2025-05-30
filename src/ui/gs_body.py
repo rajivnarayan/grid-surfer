@@ -58,7 +58,9 @@ def render_body(h_data_options):
         with h_data_options:            
             df = filter_dataframe(df_all)
         h_plot = st.container()
-        h_grid = st.expander('Show Table', expanded=False)
+        h_grid = st.expander('View Data Table',
+                             expanded=False,
+                             icon=':material/table_view:')
         
         # Data table
         with h_grid:
