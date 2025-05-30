@@ -13,7 +13,7 @@ Functions to create dot plots
 def make_dot_plot(grid_return: AgGrid):
     """Generate dotplot"""
     ctypes = gsu.get_df_column_types(grid_return.data)
-    h_options, h_main=st.columns([0.25, 0.75], gap='medium')
+    h_options, h_main=st.columns([0.3, 0.7], gap='medium')
     # settings and options
     with h_options:
         opts, opts_type = get_dot_options(ctypes)
@@ -174,10 +174,10 @@ def get_dot_options(ctypes, widget_id = 'dot_'):
             opts['color'] = st.color_picker('Marker Color:', value='#7570b2',  key=widget_id + 'color')   
             opts['default_agg_color'] = st.color_picker('Aggregate Color:', value='#d95f02', key=widget_id + 'default_agg_color')
 
-        agg_opts = {'show_points': 'Points',
+        agg_opts = {'show_points': 'Dot',
                     'show_boxplot': 'Boxplot',
-                    'show_average': 'Average',
-                    'show_dispersion': 'Dispersion'}
+                    'show_average': 'Avg',
+                    'show_dispersion': 'Var'}
         show_agg = st.segmented_control('Show', 
                                         label_visibility='collapsed',
                              options=agg_opts.keys(),
