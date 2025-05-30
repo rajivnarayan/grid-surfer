@@ -80,9 +80,16 @@ def plot_dot(df: pd.DataFrame,
                             height = opts['height'])
                 )
 
-    if opts['show_dispersion'] is True:
-        agg_kwds = kwds
-        agg_kwds['tooltip'] = alt.Undefined            
+    if opts['show_boxplot'] is True:
+        h_boxplot = (alt.Chart()
+                        .mark_boxplot(extent = 1.5,
+                                      opacity = 0.8,
+                                      outliers={'size':0},
+                                      ticks = False)
+                        .encode(**kwds))
+        chart = alt.layer(h_boxplot, chart, data=df)
+
+    if opts['show_dispersion'] is True:       
         h_dispersion = (alt.Chart()
                         .mark_errorbar(extent = opts['agg_dispersion'],
                                         thickness = 4,
@@ -141,10 +148,10 @@ def get_dot_options(ctypes, widget_id = 'dot_'):
                                                     options=['linear', 'log2', 'log10'], 
                                                     index=0)
             opts['agg_average'] = st.selectbox('Average metric:',
-                                           ['median', 'mean'],
+                                           ['mean', 'median'],
                                            index=0)
             opts['agg_dispersion'] = st.selectbox('Variance metric:',
-                                              ['iqr', 'stdev', 'stderr', 'ci'], index=0)                     
+                                              ['stdev', 'iqr', 'stderr', 'ci'], index=0)                     
             opts['width'] = st.slider('Plot Width:', min_value = 50, max_value=1000, step = 25, value = 400)
             opts['height'] = st.slider('Plot Height:', min_value = 50, max_value=1000, step = 25, value = 400)
 
@@ -166,7 +173,8 @@ def get_dot_options(ctypes, widget_id = 'dot_'):
             opts['default_agg_color'] = st.color_picker('Aggregate Color:', value='#d95f02', key=widget_id + 'default_agg_color')
 
         agg_opts = {'show_points': 'Points',
-                    'show_average': 'Averages',
+                    'show_boxplot': 'Boxplot',
+                    'show_average': 'Average',
                     'show_dispersion': 'Dispersion'}
         show_agg = st.segmented_control('Show', 
                                         label_visibility='collapsed',
@@ -179,6 +187,7 @@ def get_dot_options(ctypes, widget_id = 'dot_'):
         st.session_state[widget_id+'show_dispersion'] = 'show_dispersion' in show_agg
 
         opts['show_points'] = 'show_points' in show_agg
+        opts['show_boxplot'] = 'show_boxplot' in show_agg
         opts['show_average'] = 'show_average' in show_agg
         opts['show_dispersion'] = 'show_dispersion' in show_agg
         opts['x_axis'] = st.selectbox('X-Axis:',
