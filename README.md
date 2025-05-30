@@ -1,6 +1,8 @@
 # Grid Surfer
 
-A web application for exploring tablular datasets.
+A web application for exploratory analysis of tabular datasets.
+
+[Demo](https://github.com/rajivnarayan/grid-surfer)
 
 ## Features
 
@@ -9,6 +11,7 @@ A web application for exploring tablular datasets.
 - Get descriptive statistics on numeric and categorical fields
 - Visualize univariate and bi-variate distributions via histograms, dot and scatter plots
 - Apply grouping and faceting to charts
+
 
 ## Quickstart
 
