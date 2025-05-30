@@ -57,44 +57,52 @@ def render_body(h_data_options):
         df_all = data_loader(data_file)
         with h_data_options:            
             df = filter_dataframe(df_all)
-
+        h_plot = st.container()
+        h_grid = st.expander('Show Table', expanded=False)
+        
         # Data table
-        grid_return = render_grid(df, h_data_options)
+        with h_grid:
+            # h_grid_options = st.pills("Grid Options",
+            #                     ["Select columns", "Filter data"],
+            #                     default=None,
+            #                     label_visibility = 'collapsed')
+            grid_return = render_grid(df, h_data_options)
     
         # Visualization selector
         # Use pills since st.tabs do not support independent rendering
-        plot_select = st.pills("Plots",
-                              ["Describe", "Histogram", "Dot", "Scatter"],
-                              default='Describe',
-                              label_visibility = 'collapsed')
-        if plot_select=='Describe':
-            ctypes = gsu.get_df_column_types(grid_return.data)
-            df_desc_num = (df
-                           .loc[:, ctypes['num_columns']]
-                           .describe()
-                           .T
-                           .rename_axis('field')
-                           .style.format(precision=2)                           
-                           )
-            df_desc_cat = (df
-                           .loc[:, ctypes['cat_columns']]
-                           .describe()
-                           .T
-                           .rename_axis('field')
-                           .style.format(precision=2)
-                )
-            tab_num, tab_cat = st.tabs(['Numeric', 'Categorical'])
-            tab_num.dataframe(df_desc_num, use_container_width=False)
-            tab_cat.dataframe(df_desc_cat, use_container_width = False)
-        if plot_select=='Histogram':
-            # Histogram
-            chart_dist = distplot.make_dist_plot(grid_return)
-        elif plot_select=='Dot':
-            # Dot plot
-            chart_dot = dotplot.make_dot_plot(grid_return)            
-        elif plot_select=='Scatter':
-            # Scatter plot
-            chart_xy = xyplot.make_xy_plot(grid_return)            
+        with h_plot:
+            plot_select = st.pills("Plots",
+                                ["Describe", "Histogram", "Dot", "Scatter"],
+                                default='Describe',
+                                label_visibility = 'collapsed')
+            if plot_select=='Describe':
+                ctypes = gsu.get_df_column_types(grid_return.data)
+                df_desc_num = (df
+                            .loc[:, ctypes['num_columns']]
+                            .describe()
+                            .T
+                            .rename_axis('field')
+                            .style.format(precision=2)                           
+                            )
+                df_desc_cat = (df
+                            .loc[:, ctypes['cat_columns']]
+                            .describe()
+                            .T
+                            .rename_axis('field')
+                            .style.format(precision=2)
+                    )
+                tab_num, tab_cat = st.tabs(['Numeric', 'Categorical'])
+                tab_num.dataframe(df_desc_num, use_container_width=False)
+                tab_cat.dataframe(df_desc_cat, use_container_width = False)
+            if plot_select=='Histogram':
+                # Histogram
+                chart_dist = distplot.make_dist_plot(grid_return)
+            elif plot_select=='Dot':
+                # Dot plot
+                chart_dot = dotplot.make_dot_plot(grid_return)            
+            elif plot_select=='Scatter':
+                # Scatter plot
+                chart_xy = xyplot.make_xy_plot(grid_return)            
 
     return None
 
@@ -103,7 +111,8 @@ def render_grid(df: pd.DataFrame,
     """Render Grid"""
     # Infer basic colDefs from dataframe types
     gb = GridOptionsBuilder.from_dataframe(df)
-    opt = {"rowSelection": {"mode": "multiRow"}}
+    opt = {"rowSelection": {"mode": "multiRow"}, 
+           "autoSizeStrategy" : {"type": 'fitGridWidth'},}
     gb.configure_grid_options(**opt)
     # customize gridOptions
     gb.configure_default_column(
@@ -125,7 +134,10 @@ def render_grid(df: pd.DataFrame,
     for col in column_defs:
         col['filter'] = False        
     with h_data_options: 
-        columns_to_show = st.multiselect('Columns to display:', options=df.columns, default=df.columns)
+        columns_to_show = st.multiselect('Select columns:',
+                                         help = 'Pick columns to display',
+                                         options=df.columns,
+                                         default=df.columns)
 
     columns_to_hide=set(df.columns).difference(columns_to_show)
     for col in column_defs:
@@ -152,7 +164,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     
     See: https://blog.streamlit.io/auto-generate-a-dataframe-filtering-ui-in-streamlit-with-filter_dataframe/
     """
-    modify = st.checkbox("Add filters")
+    modify = st.checkbox("Filter data", help='Filter data columns conditionally')
 
     if not modify:
         return df

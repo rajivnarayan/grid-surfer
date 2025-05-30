@@ -83,19 +83,21 @@ def plot_dot(df: pd.DataFrame,
     if opts['show_boxplot'] is True:
         h_boxplot = (alt.Chart()
                         .mark_boxplot(extent = 1.5,
-                                      opacity = 0.8,
+                                      opacity = opts['opacity'],
                                       outliers={'size':0},
                                       ticks = False)
                         .encode(**kwds))
-        chart = alt.layer(h_boxplot, chart, data=df)
+        chart = alt.layer(chart, h_boxplot, data=df)
 
-    if opts['show_dispersion'] is True:       
+    if opts['show_dispersion'] is True:
+        agg_kwds = kwds
+        agg_kwds['tooltip'] = alt.Undefined        
         h_dispersion = (alt.Chart()
                         .mark_errorbar(extent = opts['agg_dispersion'],
                                         thickness = 4,
-                                        opacity = 0.8,
+                                        opacity = opts['opacity'],
                                         color = opts['default_agg_color'])
-                        .encode(**kwds))
+                        .encode(**agg_kwds))
         chart = alt.layer(chart, h_dispersion, data=df)
 
     if opts['show_average'] is True:
@@ -108,7 +110,7 @@ def plot_dot(df: pd.DataFrame,
                     .mark_point(filled = True,
                             strokeWidth = 2,
                             size = 150,
-                            opacity = 0.8,
+                            opacity = opts['opacity'],
                             color = opts['default_agg_color'])
                     .encode(**agg_kwds))
         chart = alt.layer(chart, h_avg, data = df)
