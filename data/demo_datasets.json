@@ -14,11 +14,6 @@
         "type": null,
         "file": "cars"
     },
-    "Differential Gene Expression": {
-        "source": "local-dataset",
-        "type": "text/csv",
-        "file": "data/GSE25724_top_table_clean.csv"
-    },
     "GapMinder Health-Income": {
         "source": "local-dataset",
         "type": "text/csv",
