@@ -13,15 +13,12 @@ Functions to create dot plots
 def make_dot_plot(grid_return: AgGrid):
     """Generate dotplot"""
     ctypes = gsu.get_df_column_types(grid_return.data)
-    h_options, h_main=st.columns([0.3, 0.7], gap='medium')
     # settings and options
-    with h_options:
-        opts, opts_type = get_dot_options(ctypes)
+    opts, opts_type = get_dot_options(ctypes)
     
     # main viz        
-    with h_main:
-        chart = plot_dot(grid_return.data, opts, opts_type)
-        st.altair_chart(chart, use_container_width=False)
+    chart = plot_dot(grid_return.data, opts, opts_type)
+    st.altair_chart(chart, use_container_width=False)
 
 
 def plot_dot(df: pd.DataFrame,
@@ -142,81 +139,84 @@ def get_dot_options(ctypes, widget_id = 'dot_'):
     default_y, _ = gsu.pick_if_present(ctypes['cat_columns'], y_to_check)
     opts = {}
     opts_type = {'mark': ['type', 'size', 'opacity', 'strokeWidth', 'color', 'filled']}
-    with st.expander('Parameters:', expanded=True):
-        with st.popover('Fine tune', 
-                        icon=':material/tune:', 
-                        use_container_width=True):
-            opts['x_scale'] = st.selectbox('X-Axis Scale:', 
-                                                    options=['linear', 'log2', 'log10'], 
-                                                    index=0)
-            opts['agg_average'] = st.selectbox('Average metric:',
-                                           ['mean', 'median'],
-                                           index=0)
-            opts['agg_dispersion'] = st.selectbox('Variance metric:',
-                                              ['stdev', 'iqr', 'stderr', 'ci'], index=0)                     
-            opts['width'] = st.slider('Plot Width:', min_value = 50, max_value=1000, step = 25, value = 400)
-            opts['height'] = st.slider('Plot Height:', min_value = 50, max_value=1000, step = 25, value = 400)
+    #with st.expander('Parameters:', expanded=True):
+    with st.sidebar:
+        with st.container(border=True):
+            st.write('**Dot plot**')
+            with st.popover('Fine tune', 
+                            icon=':material/tune:', 
+                            use_container_width=True):
+                opts['x_scale'] = st.selectbox('X-Axis Scale:', 
+                                                        options=['linear', 'log2', 'log10'], 
+                                                        index=0)
+                opts['agg_average'] = st.selectbox('Average metric:',
+                                            ['mean', 'median'],
+                                            index=0)
+                opts['agg_dispersion'] = st.selectbox('Variance metric:',
+                                                ['stdev', 'iqr', 'stderr', 'ci'], index=0)                     
+                opts['width'] = st.slider('Plot Width:', min_value = 50, max_value=1000, step = 25, value = 400)
+                opts['height'] = st.slider('Plot Height:', min_value = 50, max_value=1000, step = 25, value = 400)
 
-            opts['x_title'] = st.text_input('X-Axis Title:', None)
-            opts['y_title'] = st.text_input('Y-Axis Title:', None)
-            opts['type'] = st.selectbox('Marker:', ['point', 'tick'], index = 0)
-            opts['size'] = st.slider('Marker Size:', 
-                                        min_value = 5, max_value = 500, 
-                                        step = 5, value = 15,
-                                        key=widget_id + 'size')
-            opts['strokeWidth'] = st.slider('Stroke Width:', 
-                                                min_value = 0.0, max_value = 10.0, step = 0.5, value = 1.0,
-                                                key = widget_id+'strokeWidth')
-            opts['opacity'] = st.slider('Opacity:', 
-                                            min_value = 0.0, max_value  = 1.0, step = 0.1, value = 0.8, key=widget_id+'opacity')        
-            opts['filled'] = st.checkbox('Fill Markers:', value = False,
-                                          key=widget_id + 'filled')
-            opts['color'] = st.color_picker('Marker Color:', value='#7570b2',  key=widget_id + 'color')   
-            opts['default_agg_color'] = st.color_picker('Aggregate Color:', value='#d95f02', key=widget_id + 'default_agg_color')
+                opts['x_title'] = st.text_input('X-Axis Title:', None)
+                opts['y_title'] = st.text_input('Y-Axis Title:', None)
+                opts['type'] = st.selectbox('Marker:', ['point', 'tick'], index = 0)
+                opts['size'] = st.slider('Marker Size:', 
+                                            min_value = 5, max_value = 500, 
+                                            step = 5, value = 15,
+                                            key=widget_id + 'size')
+                opts['strokeWidth'] = st.slider('Stroke Width:', 
+                                                    min_value = 0.0, max_value = 10.0, step = 0.5, value = 1.0,
+                                                    key = widget_id+'strokeWidth')
+                opts['opacity'] = st.slider('Opacity:', 
+                                                min_value = 0.0, max_value  = 1.0, step = 0.1, value = 0.8, key=widget_id+'opacity')        
+                opts['filled'] = st.checkbox('Fill Markers:', value = False,
+                                            key=widget_id + 'filled')
+                opts['color'] = st.color_picker('Marker Color:', value='#7570b2',  key=widget_id + 'color')   
+                opts['default_agg_color'] = st.color_picker('Aggregate Color:', value='#d95f02', key=widget_id + 'default_agg_color')
 
-        agg_opts = {'show_points': 'Dot',
-                    'show_boxplot': 'Boxplot',
-                    'show_average': 'Avg',
-                    'show_dispersion': 'Var'}
-        show_agg = st.segmented_control('Show', 
-                                        label_visibility='collapsed',
-                             options=agg_opts.keys(),
-                             format_func=lambda option: agg_opts[option],
-                             selection_mode='multi',
-                             default = ['show_points'])
-        st.session_state[widget_id+'show_points'] = 'show_points' in show_agg
-        st.session_state[widget_id+'show_average'] = 'show_average' in show_agg
-        st.session_state[widget_id+'show_dispersion'] = 'show_dispersion' in show_agg
+            agg_opts = {'show_points': 'Dot',
+                        'show_boxplot': 'Boxplot',
+                        'show_average': 'Avg',
+                        'show_dispersion': 'Var'}
+            show_agg = st.segmented_control('Show', 
+                                            label_visibility='collapsed',
+                                options=agg_opts.keys(),
+                                format_func=lambda option: agg_opts[option],
+                                selection_mode='multi',
+                                default = ['show_points'])
+            st.session_state[widget_id+'show_points'] = 'show_points' in show_agg
+            st.session_state[widget_id+'show_average'] = 'show_average' in show_agg
+            st.session_state[widget_id+'show_dispersion'] = 'show_dispersion' in show_agg
 
-        opts['show_points'] = 'show_points' in show_agg
-        opts['show_boxplot'] = 'show_boxplot' in show_agg
-        opts['show_average'] = 'show_average' in show_agg
-        opts['show_dispersion'] = 'show_dispersion' in show_agg
-        opts['x_axis'] = st.selectbox('X-Axis:',
-                                      ctypes['num_columns'],
-                                      index=default_x, 
-                                      key=widget_id + 'x_axis')
-        opts['y_axis'] = st.selectbox('Y-Axis:',
-                                      ctypes['cat_columns'],
-                                      index=default_y,
-                                      key=widget_id + 'y_axis')
-        opts['color_by'] = st.selectbox('Color:', 
+            opts['show_points'] = 'show_points' in show_agg
+            opts['show_boxplot'] = 'show_boxplot' in show_agg
+            opts['show_average'] = 'show_average' in show_agg
+            opts['show_dispersion'] = 'show_dispersion' in show_agg
+            opts['x_axis'] = st.selectbox('X-Axis:',
+                                        ctypes['num_columns'],
+                                        index=default_x, 
+                                        key=widget_id + 'x_axis')
+            opts['y_axis'] = st.selectbox('Y-Axis:',
                                         ctypes['cat_columns'],
-                                        label_visibility='collapsed',
-                                        placeholder='Color by',
-                                        index=None,
-                                        key=widget_id + 'color_by')
-        opts['column_facet'] = st.selectbox('Column Facet:',
+                                        index=default_y,
+                                        key=widget_id + 'y_axis')
+            opts['color_by'] = st.selectbox('Color:', 
                                             ctypes['cat_columns'],
                                             label_visibility='collapsed',
-                                            placeholder='Column facet',
+                                            placeholder='Color by',
                                             index=None,
-                                            key=widget_id + 'column_facet')
-        opts['row_facet'] = st.selectbox('Row Facet:',
-                                         ctypes['cat_columns'],
-                                         label_visibility='collapsed',
-                                         placeholder='Row facet',
-                                         index=None,
-                                         key=widget_id + 'row_facet')
+                                            key=widget_id + 'color_by')
+            opts['column_facet'] = st.selectbox('Column Facet:',
+                                                ctypes['cat_columns'],
+                                                label_visibility='collapsed',
+                                                placeholder='Column facet',
+                                                index=None,
+                                                key=widget_id + 'column_facet')
+            opts['row_facet'] = st.selectbox('Row Facet:',
+                                            ctypes['cat_columns'],
+                                            label_visibility='collapsed',
+                                            placeholder='Row facet',
+                                            index=None,
+                                            key=widget_id + 'row_facet')
  
     return (opts, opts_type)
