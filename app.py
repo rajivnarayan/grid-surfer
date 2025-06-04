@@ -26,49 +26,97 @@ gs_state.init_state()
 
 def gs_sidebar():
     with st.sidebar:
-        st.logo('assets/logo-main.png', size='medium', icon_image = 'assets/logo-main.png', link='https://github.com/rajivnarayan/grid-surfer/')
-        st.get_option('theme.base')
-        #st.image('assets/logo-main_400x100.png', use_container_width=True)
-        input_select = st.pills("Load Data",
-                            ["File", "Demos"],
-                            default = 'File',
-                            label_visibility = 'collapsed')        
-        h_data_loader = st.container()
-        st.divider()
-        h_data_options = st.container()
+        st.logo('assets/logo-main.png', size='medium', icon_image = 'assets/logo-main.png')
+        st.link_button('v0.1 Source code', icon = ':material/code:',
+                        use_container_width=True,
+                        type = 'secondary',
+                        url = 'https://github.com/rajivnarayan/grid-surfer/')
 
-        with h_data_loader:
-            if input_select == 'File':
-                selected_ds = st.file_uploader("**Explore your data**", 
-                                    type=["csv", "txt", "tsv", "json"],
-                                    label_visibility='visible')
-                if selected_ds:
-                     st.session_state['data_file'] = selected_ds
+
+def gs_dataloader():
+      
+    input_select = st.pills("Load Data",
+                        ["File", "Demos"],
+                        default = 'File',
+                        label_visibility = 'collapsed')        
+    h_data_loader = st.empty()
+    h_data_options = st.container()
+
+    with h_data_loader:
+        if input_select == 'File':
+            selected_ds = st.file_uploader("**Explore your data**", 
+                                type=["csv", "txt", "tsv", "json"],
+                                label_visibility='visible')
+            if selected_ds:
+                st.session_state['data_file'] = selected_ds
+        else:
+            ds_list = list(st.session_state['examples'].keys())
+            demo_choice = st.session_state.get('demo_choice')
+            if demo_choice is not None:
+                ds_index = ds_list.index(demo_choice)
             else:
-                ds_list = list(st.session_state['examples'].keys())
-                demo_choice = st.session_state.get('demo_choice')
-                if demo_choice is not None:
-                    ds_index = ds_list.index(demo_choice)
-                else:
-                    ds_index = None
+                ds_index = None
 
-                selected_ds = st.radio('Select Dataset', ds_list,
-                                       label_visibility='hidden',
-                                       index=ds_index,
-                                       key = 'demo_choice')
-                if selected_ds:
-                    Dataset = namedtuple('Dataset', 
-                                         'name source type file')       
-                    st.session_state['data_file'] = Dataset(selected_ds, 
-                                        **st.session_state.examples[selected_ds])
-            
+            selected_ds = st.radio('Select Dataset', ds_list,
+                                    label_visibility='hidden',
+                                    index=ds_index,
+                                    key = 'demo_choice')
+            if selected_ds:
+                Dataset = namedtuple('Dataset', 
+                                        'name source type file')     
+                st.session_state['data_file'] = Dataset(selected_ds, 
+                                    **st.session_state.examples[selected_ds])
     return h_data_loader, h_data_options
 
+@st.dialog("Load data")
+def data_loader():
+    input_select = st.session_state['data_select']
+    if input_select == 'File':
+        selected_ds = st.file_uploader("**Explore your data**", 
+                        type=["csv", "txt", "tsv", "json"],
+                        label_visibility='visible')
+        if selected_ds:
+            st.session_state['data_file'] = selected_ds
+            st.rerun()
+
+    else:   
+        ds_list = list(st.session_state['examples'].keys())
+        demo_choice = st.session_state.get('demo_choice')
+        if demo_choice is not None:
+            ds_index = ds_list.index(demo_choice)
+        else:
+            ds_index = None
+
+        selected_ds = st.radio('**Example Datasets**', ds_list,
+                                label_visibility='visible',
+                                index=ds_index,
+                                key = 'demo_choice')
+        if selected_ds:
+            Dataset = namedtuple('Dataset', 
+                                    'name source type file')
+            st.session_state['data_file'] = Dataset(selected_ds, 
+                                **st.session_state.examples[selected_ds])            
+            st.rerun()
+
+def load_data():
+    option_map = {'File': ":material/folder_open: File", 
+                  'Demo': ":material/auto_stories: Examples"}
+    
+    st.segmented_control("Load Data",                                         
+                        options = option_map.keys(),
+                        format_func=lambda option: option_map[option],
+                        default = None,
+                        key = 'data_select',
+                        on_change=data_loader,
+                        label_visibility = 'collapsed') 
 
 def main():
-
-    h_data_loader, h_data_options = gs_sidebar()    
-    render_body(h_data_options)
+    gs_sidebar()        
+    load_data()
+    h_filter = st.expander('Filter Data',
+                           expanded=False,
+                           icon=':material/filter_alt:')
+    render_body(h_filter)
 
 if __name__ == "__main__":
     main()
