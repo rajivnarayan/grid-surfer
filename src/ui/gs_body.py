@@ -16,7 +16,7 @@ from collections import namedtuple
 from vega_datasets import local_data
 import altair as alt
 from src.ui import gs_utils as gsu
-from src.ui import dotplot, distplot, xyplot
+from src.ui import describe, dotplot, distplot, xyplot
 
 @st.cache_data
 def read_data(fd, file_type):
@@ -57,8 +57,10 @@ def render_body(h_data_options):
         df_all = data_loader(data_file)
         with h_data_options:            
             df = filter_dataframe(df_all)
-        h_plot = st.container()
-        h_grid = st.expander('View Data Table',
+        h_plot = st.expander('Analyze',
+                             expanded=True,
+                             icon=':material/insert_chart:')
+        h_grid = st.expander('View Table',
                              expanded=False,
                              icon=':material/table_view:')
         
@@ -78,24 +80,26 @@ def render_body(h_data_options):
                                 default='Describe',
                                 label_visibility = 'collapsed')
             if plot_select=='Describe':
-                ctypes = gsu.get_df_column_types(grid_return.data)
-                df_desc_num = (df
-                            .loc[:, ctypes['num_columns']]
-                            .describe()
-                            .T
-                            .rename_axis('field')
-                            .style.format(precision=2)                           
-                            )
-                df_desc_cat = (df
-                            .loc[:, ctypes['cat_columns']]
-                            .describe()
-                            .T
-                            .rename_axis('field')
-                            .style.format(precision=2)
-                    )
-                tab_num, tab_cat = st.tabs(['Numeric', 'Categorical'])
-                tab_num.dataframe(df_desc_num, use_container_width=False)
-                tab_cat.dataframe(df_desc_cat, use_container_width = False)
+                # Descriptive statistics
+                describe.show_description(grid_return)
+                # ctypes = gsu.get_df_column_types(grid_return.data)
+                # df_desc_num = (df
+                #             .loc[:, ctypes['num_columns']]
+                #             .describe()
+                #             .T
+                #             .rename_axis('field')
+                #             .style.format(precision=2)                           
+                #             )
+                # df_desc_cat = (df
+                #             .loc[:, ctypes['cat_columns']]
+                #             .describe()
+                #             .T
+                #             .rename_axis('field')
+                #             .style.format(precision=2)
+                #     )
+                # tab_num, tab_cat = st.tabs(['Numeric', 'Categorical'])
+                # tab_num.dataframe(df_desc_num, use_container_width=False)
+                # tab_cat.dataframe(df_desc_cat, use_container_width = False)
             if plot_select=='Histogram':
                 # Histogram
                 chart_dist = distplot.make_dist_plot(grid_return)
@@ -136,8 +140,8 @@ def render_grid(df: pd.DataFrame,
     for col in column_defs:
         col['filter'] = False        
     with h_data_options: 
-        columns_to_show = st.multiselect('Select columns:',
-                                         help = 'Pick columns to display',
+        columns_to_show = st.multiselect('Display columns:',
+                                         help = 'Pick columns to display in the grid',
                                          options=df.columns,
                                          default=df.columns)
 
@@ -166,7 +170,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     
     See: https://blog.streamlit.io/auto-generate-a-dataframe-filtering-ui-in-streamlit-with-filter_dataframe/
     """
-    modify = st.checkbox("Filter data", help='Filter data columns conditionally')
+    modify = st.checkbox("Conditional Filters", help='Filter data columns conditionally')
 
     if not modify:
         return df
