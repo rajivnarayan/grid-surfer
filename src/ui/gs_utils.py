@@ -19,9 +19,8 @@ def init_custom_style():
         }
         [alt=Logo] {
             display: block;
-            margin-left:48px;
+            margin-left:64px;
             margin-right:auto;
-            width: 400px;
         }
         /* Multiselect format*/
         .stMultiSelect > label {
