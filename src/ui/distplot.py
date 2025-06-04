@@ -10,16 +10,13 @@ Functions to create histograms
 
 def make_dist_plot(grid_return):
     """Distribution Plot"""
-    ctypes = gsu.get_df_column_types(grid_return.data)
-    h_options, h_main = st.columns([0.3, 0.7], gap='medium')
+    ctypes = gsu.get_df_column_types(grid_return.data)    
     # settings and options
-    with h_options:
-        opts, opts_types = get_dist_options(ctypes)
+    opts, opts_types = get_dist_options(ctypes)
 
-    # main viz        
-    with h_main:
-        chart = plot_histogram(grid_return.data, opts, opts_types)
-        st.altair_chart(chart, use_container_width=False)
+    # main viz    
+    chart = plot_histogram(grid_return.data, opts, opts_types)
+    st.altair_chart(chart, use_container_width=False)
 
 def plot_histogram(df: pd.DataFrame, 
                    opts: dict, 
@@ -88,52 +85,52 @@ def get_dist_options(ctypes):
     default_x, x_found = gsu.pick_if_present(ctypes['num_columns'], x_to_check)
     opts = {}
     opts_type = {'mark':['color'], 'scale':['y_scale']}
-    with st.expander('Parameters:', expanded=True):
-        with st.popover('Fine tune',
-                        icon=':material/tune:',
-                        use_container_width=True):
-            # scale properties
-            opts['y_scale'] = st.selectbox('Y-Axis Scale:', 
-                                                    options=['linear', 'log2', 'log10'], 
-                                                    index=0)
-            opts['width'] = st.slider('Plot width:',
-                                      min_value=50,
-                                      max_value=1000,
-                                      step=25,
-                                      value=400)
-            opts['height'] = st.slider('Plot height:',
-                                      min_value=50,
-                                      max_value=1000,
-                                      step=25,
-                                      value=400)               
-            # mark properties
-            opts['color'] = st.color_picker('Color:', value='#4e79a7')
-                        
-        opts['x_axis'] = st.selectbox('X-Axis:', 
-                                      ctypes['num_columns'],
-                                      index=default_x)
-        opts['bins'] = st.slider('Bins:',
-                                 min_value=5,
-                                 max_value=200,
-                                 step=5,
-                                 value=30 )
-        opts['color_by'] = st.selectbox('Color:',
-                                        ctypes['cat_columns'],
-                                        label_visibility='collapsed',
-                                        placeholder='Color by',
-                                        index=None)
-        opts['facet_by_column'] = st.selectbox('Column Facet:',
-                                               ctypes['cat_columns'], 
-                                               label_visibility='visible',
-                                               placeholder='Column facet',  
-                                               help='Select field for column facet',
-                                               index=None)
-        opts['facet_by_row'] = st.selectbox('Row Facet:',
+    #with st.expander('Parameters:', expanded=True):
+    with st.sidebar:
+        with st.container(border=True):
+            st.write('**Histogram**')
+            with st.popover('Fine tune',
+                            icon=':material/tune:',
+                            use_container_width=True):
+                # scale properties
+                opts['y_scale'] = st.selectbox('Y-Axis Scale:', 
+                                                        options=['linear', 'log2', 'log10'], 
+                                                        index=0)
+                opts['width'] = st.slider('Plot width:',
+                                        min_value=50,
+                                        max_value=1000,
+                                        step=25,
+                                        value=400)
+                opts['height'] = st.slider('Plot height:',
+                                        min_value=50,
+                                        max_value=1000,
+                                        step=25,
+                                        value=400)               
+                # mark properties
+                opts['color'] = st.color_picker('Color:', value='#4e79a7')
+                            
+            opts['x_axis'] = st.selectbox('X-Axis:', 
+                                        ctypes['num_columns'],
+                                        index=default_x)
+            opts['bins'] = st.slider('Bins:',
+                                    min_value=5,
+                                    max_value=200,
+                                    step=5,
+                                    value=30 )
+            opts['color_by'] = st.selectbox('Color:',
                                             ctypes['cat_columns'],
                                             label_visibility='collapsed',
-                                            placeholder='Row facet',          
+                                            placeholder='Color by',
                                             index=None)
-         
-
-
+            opts['facet_by_column'] = st.selectbox('Column Facet:',
+                                                ctypes['cat_columns'], 
+                                                label_visibility='visible',
+                                                placeholder='Column facet',  
+                                                help='Select field for column facet',
+                                                index=None)
+            opts['facet_by_row'] = st.selectbox('Row Facet:',
+                                                ctypes['cat_columns'],
+                                                label_visibility='collapsed',
+                                                placeholder='Row facet',          
+                                                index=None)
     return (opts, opts_type)
