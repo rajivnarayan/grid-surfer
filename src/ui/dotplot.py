@@ -147,6 +147,9 @@ def get_dot_options(ctypes, widget_id = 'dot_'):
                             icon=':material/tune:', 
                             use_container_width=True).container(
                                 height=300):
+                opts['plot_name'] = st.text_input('Plot name:',
+                                                   'xy_plot',
+                                                     max_chars=50)  
                 opts['x_scale'] = st.selectbox('X-Axis Scale:', 
                                                options=['linear',
                                                         'log2',
@@ -163,12 +166,12 @@ def get_dot_options(ctypes, widget_id = 'dot_'):
                                           min_value = 50, 
                                           max_value=1000, 
                                           step = 25, 
-                                          value = 400)
+                                          value = 350)
                 opts['height'] = st.slider('Plot Height:', 
                                            min_value = 50, 
                                            max_value=1000, 
                                            step = 25, 
-                                           value = 400)
+                                           value = 350)
 
                 opts['x_title'] = st.text_input('X-Axis Title:', None)
                 opts['y_title'] = st.text_input('Y-Axis Title:', None)

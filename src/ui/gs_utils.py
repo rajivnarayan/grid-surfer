@@ -107,3 +107,17 @@ def transform_nlogp(p: list[float], base:int=10) -> float:
     # to avoid log(0), set zeros to small non-zero values
     min_nz_p = 0.01*np.min(p[p]>0)
     return -np.log(np.clip(p, min_nz_p, 1))/np.log(base)
+
+def set_chart_name(chart: alt.Chart,
+                   filename: str) -> alt.Chart:
+    # set chart save filename and actions
+    chart['usermeta'] = {
+        'embedOptions': {
+            'downloadFileName': filename,
+            'actions': {'export':True,
+                        'source':False,
+                        'editor':False,
+                        'compiled':False}
+        }
+    }
+    return chart
