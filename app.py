@@ -27,10 +27,10 @@ gs_state.init_state()
 def gs_sidebar():
     with st.sidebar:
         st.logo('assets/logo-main.png', size='medium', icon_image = 'assets/logo-main.png')
-        st.link_button('v0.1 Source code', icon = ':material/code:',
+        st.button('About', icon = ':material/info:',
                         use_container_width=True,
-                        type = 'secondary',
-                        url = 'https://github.com/rajivnarayan/grid-surfer/')
+                        type = 'primary',
+                        on_click=show_help)
 
 
 def gs_dataloader():
@@ -98,6 +98,24 @@ def data_loader():
                                 **st.session_state.examples[selected_ds])            
             st.rerun()
 
+@st.dialog('Grid Surfer')
+def show_help():
+    st.markdown('''
+                &copy; Rajiv Narayan, 2025
+                
+                GridSurfer is a web application for exploring tabular datasets.
+
+                **Features:**
+                - Supports tabular data in CSV, TSV or JSON format
+                - Get descriptive statistics on numeric and categorical fields
+                - Visualize univariate and bi-variate distributions via histograms, dot and scatter plots
+                - View the data in a filterable and sortable grid
+                - Apply grouping and faceting to charts                
+                ''')
+    st.link_button('View code and report bugs',
+                   type='primary',
+                   url = 'https://github.com/rajivnarayan/grid-surfer/',
+                   use_container_width=True)
 def load_data():
     option_map = {'File': ":material/folder_open: File", 
                   'Demo': ":material/auto_stories: Examples"}
