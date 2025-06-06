@@ -15,7 +15,7 @@ st.set_page_config(
     menu_items={
         'Get Help': 'https://github.com/rajivnarayan/grid-surfer/',
         'Report a bug': "https://github.com/rajivnarayan/grid-surfer/",
-        'About': "Grid Surfer v0.1 - Explore tabular datasets"
+        'About': "Grid Surfer - Explore tabular datasets"
     })
 
 # setup custom styles
@@ -26,11 +26,14 @@ gs_state.init_state()
 
 def gs_sidebar():
     with st.sidebar:
-        st.logo('assets/logo-main.png', size='medium', icon_image = 'assets/logo-main.png')
-        st.button('About', icon = ':material/info:',
-                        use_container_width=True,
-                        type = 'primary',
-                        on_click=show_help)
+        st.logo('assets/logo-main.png', 
+                size='medium', 
+                icon_image = 'assets/logo-main.png')
+        st.button('About', 
+                  icon = ':material/info:',
+                  use_container_width=True,
+                  type = 'secondary',
+                  on_click=show_help)
 
 
 def gs_dataloader():
