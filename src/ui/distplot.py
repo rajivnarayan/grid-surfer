@@ -96,6 +96,9 @@ def get_dist_options(ctypes):
                             use_container_width=True).container(
                                 height=300):
                 # scale properties
+                opts['plot_name'] = st.text_input('Plot name:',
+                                                   'xy_plot',
+                                                     max_chars=50)
                 opts['y_scale'] = st.selectbox('Y-Axis Scale:', 
                                             options=['linear', 
                                                      'log2',
@@ -105,12 +108,12 @@ def get_dist_options(ctypes):
                                         min_value=50,
                                         max_value=1000,
                                         step=25,
-                                        value=400)
+                                        value=350)
                 opts['height'] = st.slider('Plot height:',
                                         min_value=50,
                                         max_value=1000,
                                         step=25,
-                                        value=400)               
+                                        value=350)
                 # mark properties
                 opts['color'] = st.color_picker('Color:', value='#4e79a7')
                             

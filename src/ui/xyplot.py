@@ -50,7 +50,8 @@ def plot_xy(df: pd.DataFrame, opts:dict, opts_type:dict) -> alt.Chart:
 
     if opts['color_by'] is not None:
         kwds['color'] = {"field": opts['color_by'], 
-                         "scale": {"scheme": "tableau10"}}
+                         "scale": {"scheme": "tableau10"},
+                         "legend": alt.Legend(orient='right')}
         tooltips.extend([opts['color_by']])
         select_fields.extend([opts['color_by']])
 
@@ -88,7 +89,8 @@ def plot_xy(df: pd.DataFrame, opts:dict, opts_type:dict) -> alt.Chart:
         .transform_filter(selection)
         .properties(width=opts['width'],
                     height=opts['height'])
-        )                                                        
+        )
+    chart = gsu.set_chart_name(chart, opts['plot_name'])
     return chart
 
 
@@ -130,24 +132,27 @@ def get_xy_options(ctypes):
                             use_container_width=False).container(
                                 height=300):
                 # scale properties
+                opts['plot_name'] = st.text_input('Plot name:',
+                                                   'xy_plot',
+                                                     max_chars=50)
                 opts['x_scale'] = st.selectbox('X-Axis Scale:',
                                                 **scale_props['x_scale'])
                 opts['y_scale'] = st.selectbox('Y-Axis Scale:',
                                                 **scale_props['y_scale'])
-                opts['agg_average'] = st.selectbox('Show Averages:',
-                                            ['median', 'mean'],
-                                            index=0)
                 opts['width'] = st.slider('Plot width:',
                                         min_value=50,
                                         max_value=1000,
                                         step=25,
-                                        value=400)
+                                        value=350)
                 opts['height'] = st.slider('Plot height:',
                                         min_value=50,
                                         max_value=1000,
                                         step=25,
-                                        value=400)            
+                                        value=350)
                 # mark properties
+                opts['agg_average'] = st.selectbox('Show Averages:',
+                                            ['median', 'mean'],
+                                            index=0)
                 opts['opacity'] = st.slider('Opacity:',
                                             **mark_props['opacity'])
                 opts['size'] = st.slider('Size:',
@@ -157,7 +162,7 @@ def get_xy_options(ctypes):
                 opts['color'] = st.color_picker('Color:',
                                                 **mark_props['color'])
                 opts['filled'] = st.checkbox('Fill Markers:',
-                                            **mark_props['filled'])        
+                                            **mark_props['filled'])
             opts['x_axis'] = st.selectbox('X-Axis:',
                                         ctypes['num_columns'],
                                         index=default_x)
