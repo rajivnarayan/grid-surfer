@@ -43,7 +43,9 @@ def get_df_column_types(df: pd.DataFrame) -> dict:
     column_types['cat_columns']=df.columns[~is_numeric].tolist()
     return column_types
 
-def pick_if_present(reference: list, to_check: list, default: int=0) -> tuple[int, list]:
+def pick_if_present(reference: list,
+                    to_check: list,
+                    default: int=0) -> tuple[int, list]:
     """
     Check if reference exist in a list
 
@@ -65,16 +67,19 @@ def pick_if_present(reference: list, to_check: list, default: int=0) -> tuple[in
 
 def get_axis_scale(scale_str: str) -> alt.Scale:
     """
-    This function takes a scale string as input and returns an Altair Scale object based on the provided scale type.
+    This function takes a scale string as input and returns an Altair Scale 
+    object based on the provided scale type.
     
     Parameters:
-    scale_str (str): A string representing the scale type. It can be one of the following:
+    scale_str (str): A string representing the scale type. It can be one of the
+     following:
     - 'linear': Linear scale
     - 'log10': Logarithmic scale with base 10
     - 'log2': Logarithmic scale with base 2
     
     Returns:
-    alt.Scale: An Altair Scale object configured according to the specified scale type.
+    alt.Scale: An Altair Scale object configured according to the specified 
+    scale type.
     """
     scale_lut={'linear': {'type':'linear'},
     'log10' : {'type':'log', 'base':10},
@@ -84,7 +89,7 @@ def get_axis_scale(scale_str: str) -> alt.Scale:
 
 
 def format_float(f):
-    d = Decimal(str(f));
+    d = Decimal(str(f))
     return d.quantize(Decimal(1)) if d == d.to_integral() else d.normalize()
 
 def transform_nlogp(p: list[float], base:int=10) -> float:

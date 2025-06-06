@@ -1,5 +1,5 @@
 import streamlit as st
-from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder, StAggridTheme
+from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder
 import pandas as pd
 from pandas.api.types import (
     is_categorical_dtype,
@@ -8,14 +8,8 @@ from pandas.api.types import (
     is_object_dtype,
 )
 import json
-import numpy as np
-import requests
-import re
 import io
-from collections import namedtuple
 from vega_datasets import local_data
-import altair as alt
-from src.ui import gs_utils as gsu
 from src.ui import describe, dotplot, distplot, xyplot
 
 @st.cache_data
@@ -82,33 +76,15 @@ def render_body(h_data_options):
             if plot_select=='Describe':
                 # Descriptive statistics
                 describe.show_description(grid_return)
-                # ctypes = gsu.get_df_column_types(grid_return.data)
-                # df_desc_num = (df
-                #             .loc[:, ctypes['num_columns']]
-                #             .describe()
-                #             .T
-                #             .rename_axis('field')
-                #             .style.format(precision=2)                           
-                #             )
-                # df_desc_cat = (df
-                #             .loc[:, ctypes['cat_columns']]
-                #             .describe()
-                #             .T
-                #             .rename_axis('field')
-                #             .style.format(precision=2)
-                #     )
-                # tab_num, tab_cat = st.tabs(['Numeric', 'Categorical'])
-                # tab_num.dataframe(df_desc_num, use_container_width=False)
-                # tab_cat.dataframe(df_desc_cat, use_container_width = False)
             if plot_select=='Histogram':
                 # Histogram
-                chart_dist = distplot.make_dist_plot(grid_return)
+                _ = distplot.make_dist_plot(grid_return)
             elif plot_select=='Dot':
                 # Dot plot
-                chart_dot = dotplot.make_dot_plot(grid_return)            
+                _ = dotplot.make_dot_plot(grid_return)            
             elif plot_select=='Scatter':
                 # Scatter plot
-                chart_xy = xyplot.make_xy_plot(grid_return)            
+                _ = xyplot.make_xy_plot(grid_return)            
 
     return None
 
@@ -133,7 +109,9 @@ def render_grid(df: pd.DataFrame,
     gb.configure_side_bar(filters_panel=True, columns_panel=True)
     # set precision of numeric columns
     for f in df.dtypes[df.dtypes=='float64'].index:
-        gb.configure_column(f, type=["numericColumn","numberColumnFilter","customNumericFormat"], precision=2)
+        gb.configure_column(f, type=["numericColumn",
+                                     "numberColumnFilter","customNumericFormat"], 
+                                     precision=2)
     gridOptions = gb.build()
     column_defs = gridOptions['columnDefs']
     # Set all columns to be filterable
@@ -141,7 +119,7 @@ def render_grid(df: pd.DataFrame,
         col['filter'] = False        
     with h_data_options: 
         columns_to_show = st.multiselect('Display columns:',
-                                         help = 'Pick columns to display in the grid',
+                        help = 'Pick columns to display in the grid',
                                          options=df.columns,
                                          default=df.columns)
 
@@ -170,7 +148,8 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     
     See: https://blog.streamlit.io/auto-generate-a-dataframe-filtering-ui-in-streamlit-with-filter_dataframe/
     """
-    modify = st.checkbox("Conditional Filters", help='Filter data columns conditionally')
+    modify = st.checkbox("Conditional Filters", 
+                         help='Filter data columns conditionally')
 
     if not modify:
         return df
@@ -223,7 +202,8 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                     ),
                 )
                 if len(user_date_input) == 2:
-                    user_date_input = tuple(map(pd.to_datetime, user_date_input))
+                    user_date_input = tuple(map(pd.to_datetime, 
+                                                user_date_input))
                     start_date, end_date = user_date_input
                     df = df.loc[df[column].between(start_date, end_date)]
             else:
@@ -231,6 +211,8 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                     f"Substring or regex in {column}",
                 )
                 if user_text_input:
-                    df = df[df[column].astype(str).str.contains(user_text_input)]
+                    df = (df[df[column]
+                             .astype(str)
+                             .str.contains(user_text_input)])
 
     return df

@@ -19,3 +19,8 @@ dependencies = [
 
 [tool.uv.sources]
 streamlit-pydantic = { git = "https://github.com/HIL340/streamlit-pydantic.git", rev = "pydantic-2.7" }
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.13",
+]

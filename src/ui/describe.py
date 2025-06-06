@@ -62,5 +62,6 @@ def get_describe_options(ctypes, widget_id='describe_'):
                         ctypes['cat_columns'],
                         index=None,
                         label_visibility='visible',
-                        help = 'Categorical variable for calculating grouped statistics of numeric fields',
+                        help = '''Categorical variable for 
+                        calculating grouped statistics of numeric fields''',
                         key=widget_id + 'group_by')

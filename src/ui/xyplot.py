@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import altair as alt
 from st_aggrid import AgGrid
 from src.ui import gs_utils as gsu
@@ -50,7 +49,8 @@ def plot_xy(df: pd.DataFrame, opts:dict, opts_type:dict) -> alt.Chart:
         #tooltips.extend([opts['row']])
 
     if opts['color_by'] is not None:
-        kwds['color'] = {"field": opts['color_by'], "scale": {"scheme": "tableau10"}}
+        kwds['color'] = {"field": opts['color_by'], 
+                         "scale": {"scheme": "tableau10"}}
         tooltips.extend([opts['color_by']])
         select_fields.extend([opts['color_by']])
 
@@ -95,9 +95,12 @@ def plot_xy(df: pd.DataFrame, opts:dict, opts_type:dict) -> alt.Chart:
 def get_xy_options(ctypes):
 
     mark_props={
-        'opacity' : {'min_value' : 0.0, 'max_value': 1.0, 'step' : 0.1, 'value' : 0.7},
-        'size' : {'min_value' : 0, 'max_value' : 500, 'step' : 10, 'value' : 30},
-        'strokeWidth' : {'min_value' : 0.0, 'max_value' : 10.0, 'step' : 0.5, 'value' : 2.0},
+        'opacity' : {'min_value' : 0.0, 'max_value': 1.0, 'step' : 0.1, 
+                     'value' : 0.7},
+        'size' : {'min_value' : 0, 'max_value' : 500, 'step' : 10,
+                  'value' : 30},
+        'strokeWidth' : {'min_value' : 0.0, 'max_value' : 10.0, 
+                         'step' : 0.5, 'value' : 2.0},
         'color' : {'value': '#7570b3'},  
         'filled': {'value': True}
     }
@@ -106,7 +109,8 @@ def get_xy_options(ctypes):
         'y_scale' : {'options' : ['linear', 'log2', 'log10'], 'index': 0}
     }
    
-    names_tocheck=['gene_name', 'gene_symbol', 'name', 'treatment', 'target_name']
+    names_tocheck=['gene_name', 'gene_symbol', 'name', 
+                   'treatment', 'target_name']
     x_to_check = ['x', 'treatment', 'group']
     y_to_check = ['y', 'ss_ngene']
     default_tooltip, names_list = gsu.pick_if_present(ctypes['cat_columns'], 
