@@ -142,10 +142,11 @@ def get_dot_options(ctypes, widget_id = 'dot_'):
     #with st.expander('Parameters:', expanded=True):
     with st.sidebar:
         with st.container(border=True):
-            st.write('**Dot plot**')
+            st.write('**Dot Settings**')
             with st.popover('Fine tune', 
                             icon=':material/tune:', 
-                            use_container_width=True):
+                            use_container_width=True).container(
+                                height=300):
                 opts['x_scale'] = st.selectbox('X-Axis Scale:', 
                                                         options=['linear', 'log2', 'log10'], 
                                                         index=0)
@@ -183,7 +184,7 @@ def get_dot_options(ctypes, widget_id = 'dot_'):
                                 options=agg_opts.keys(),
                                 format_func=lambda option: agg_opts[option],
                                 selection_mode='multi',
-                                default = ['show_points'])
+                                default = ['show_points', 'show_boxplot'])
             st.session_state[widget_id+'show_points'] = 'show_points' in show_agg
             st.session_state[widget_id+'show_average'] = 'show_average' in show_agg
             st.session_state[widget_id+'show_dispersion'] = 'show_dispersion' in show_agg

@@ -57,7 +57,7 @@ def get_describe_options(ctypes, widget_id='describe_'):
     """Get parameters and options"""
     with st.sidebar:
         with st.container(border=True):
-            st.markdown('**Describe**')
+            st.markdown('**Describe Settings**')
             st.selectbox('Group by:',
                         ctypes['cat_columns'],
                         index=None,

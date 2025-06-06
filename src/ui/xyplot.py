@@ -120,10 +120,11 @@ def get_xy_options(ctypes):
     #with st.expander('Parameters:', expanded=True):
     with st.sidebar:
         with st.container(border=True):
-            st.write('**Scatter plot**')
+            st.write('**Scatter Settings**')
             with st.popover('Fine tune', 
                             icon=':material/tune:',
-                            use_container_width=True):
+                            use_container_width=False).container(
+                                height=300):
                 # scale properties
                 opts['x_scale'] = st.selectbox('X-Axis Scale:',
                                                 **scale_props['x_scale'])

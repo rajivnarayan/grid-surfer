@@ -88,10 +88,11 @@ def get_dist_options(ctypes):
     #with st.expander('Parameters:', expanded=True):
     with st.sidebar:
         with st.container(border=True):
-            st.write('**Histogram**')
+            st.write('**Histogram Settings**')
             with st.popover('Fine tune',
                             icon=':material/tune:',
-                            use_container_width=True):
+                            use_container_width=True).container(
+                                height=300):
                 # scale properties
                 opts['y_scale'] = st.selectbox('Y-Axis Scale:', 
                                                         options=['linear', 'log2', 'log10'], 
