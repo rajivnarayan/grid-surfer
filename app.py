@@ -1,7 +1,4 @@
 import streamlit as st
-import pandas as pd
-from pathlib import Path
-from vega_datasets import local_data
 from collections import namedtuple
 from src.ui.gs_body import render_body
 from src.ui import gs_utils as gsu
@@ -111,7 +108,8 @@ def show_help():
                 **Features:**
                 - Supports tabular data in CSV, TSV or JSON format
                 - Get descriptive statistics on numeric and categorical fields
-                - Visualize univariate and bi-variate distributions via histograms, dot and scatter plots
+                - Visualize univariate and bi-variate distributions via       
+                histograms, dot and scatter plots
                 - View the data in a filterable and sortable grid
                 - Apply grouping and faceting to charts                
                 ''')

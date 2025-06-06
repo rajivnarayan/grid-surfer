@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import altair as alt
 from src.ui import gs_utils as gsu
 
@@ -46,7 +45,8 @@ def plot_histogram(df: pd.DataFrame,
         #tooltips.extend([opts['row']])
 
     if opts['color_by'] is not None:
-        kwds['color'] = {"field": opts['color_by'], "scale": {"scheme": "tableau10"}}
+        kwds['color'] = {"field": opts['color_by'],
+                         "scale": {"scheme": "tableau10"}}
         tooltips.extend([opts['color_by']])
         select_fields.extend([opts['color_by']])
 
@@ -77,11 +77,13 @@ def plot_histogram(df: pd.DataFrame,
 
 def get_dist_options(ctypes):
     """Get parameters and options for distribution plots"""
-    names_tocheck=['gene_name', 'gene_symbol', 'name', 'treatment', 'target_name']
+    #names_tocheck=['gene_name', 'gene_symbol', 'name',
+    #               'treatment', 'target_name']
     x_to_check=['x', 'cc_q75']
-    names_list = set([e for e in ctypes['cat_columns'] for n in names_tocheck if n in e])  
+    #names_list = set([e for e in ctypes['cat_columns'] 
+    #                  for n in names_tocheck if n in e])  
     
-    default_tooltip = next(iter(names_list or []), None)                
+    #default_tooltip = next(iter(names_list or []), None)                
     default_x, x_found = gsu.pick_if_present(ctypes['num_columns'], x_to_check)
     opts = {}
     opts_type = {'mark':['color'], 'scale':['y_scale']}
@@ -95,8 +97,10 @@ def get_dist_options(ctypes):
                                 height=300):
                 # scale properties
                 opts['y_scale'] = st.selectbox('Y-Axis Scale:', 
-                                                        options=['linear', 'log2', 'log10'], 
-                                                        index=0)
+                                            options=['linear', 
+                                                     'log2',
+                                                     'log10'],
+                                                     index=0)
                 opts['width'] = st.slider('Plot width:',
                                         min_value=50,
                                         max_value=1000,
@@ -127,11 +131,11 @@ def get_dist_options(ctypes):
                                                 ctypes['cat_columns'], 
                                                 label_visibility='visible',
                                                 placeholder='Column facet',  
-                                                help='Select field for column facet',
+                                        help='Select field for column facet',
                                                 index=None)
             opts['facet_by_row'] = st.selectbox('Row Facet:',
                                                 ctypes['cat_columns'],
                                                 label_visibility='collapsed',
-                                                placeholder='Row facet',          
+                                                placeholder='Row facet',
                                                 index=None)
     return (opts, opts_type)
