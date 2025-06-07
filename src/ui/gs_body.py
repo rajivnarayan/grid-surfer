@@ -11,6 +11,7 @@ import json
 import io
 from vega_datasets import local_data
 from src.ui import describe, dotplot, distplot, xyplot
+from src.ui import gs_utils as gsu
 
 @st.cache_data
 def read_data(fd, file_type):
@@ -44,13 +45,19 @@ def data_loader(uploaded_file):
                 st.exception(e)
     return df
 
-def render_body(h_data_options):
+def render_body(h_filter):
     # Load data
     data_file = st.session_state['data_file']
     if data_file is not None:
         df_all = data_loader(data_file)
-        with h_data_options:            
+        with h_filter:
             df = filter_dataframe(df_all)
+        nrows = df_all.shape[0]
+        nrows_filt = df.shape[0]
+        if nrows == nrows_filt:
+            gsu.update_status(f'{nrows} rows')
+        else:
+            gsu.update_status(f'{nrows_filt}/{nrows} rows')
         h_plot = st.expander('Analyze',
                              expanded=True,
                              icon=':material/insert_chart:')
@@ -64,7 +71,7 @@ def render_body(h_data_options):
             #                     ["Select columns", "Filter data"],
             #                     default=None,
             #                     label_visibility = 'collapsed')
-            grid_return = render_grid(df, h_data_options)
+            grid_return = render_grid(df, h_filter)
     
         # Visualization selector
         # Use pills since st.tabs do not support independent rendering
@@ -73,23 +80,24 @@ def render_body(h_data_options):
                                 ["Describe", "Histogram", "Dot", "Scatter"],
                                 default='Describe',
                                 label_visibility = 'collapsed')
-            if plot_select=='Describe':
-                # Descriptive statistics
-                describe.show_description(grid_return)
-            if plot_select=='Histogram':
-                # Histogram
-                _ = distplot.make_dist_plot(grid_return)
-            elif plot_select=='Dot':
-                # Dot plot
-                _ = dotplot.make_dot_plot(grid_return)            
-            elif plot_select=='Scatter':
-                # Scatter plot
-                _ = xyplot.make_xy_plot(grid_return)            
+            with st.container(border=False):
+                if plot_select=='Describe':
+                    # Descriptive statistics
+                    describe.show_description(grid_return)
+                if plot_select=='Histogram':
+                    # Histogram
+                    _ = distplot.make_dist_plot(grid_return)
+                elif plot_select=='Dot':
+                    # Dot plot
+                    _ = dotplot.make_dot_plot(grid_return)            
+                elif plot_select=='Scatter':
+                    # Scatter plot
+                    _ = xyplot.make_xy_plot(grid_return)            
 
     return None
 
 def render_grid(df: pd.DataFrame,
-                h_data_options) -> AgGrid:
+                h_filter) -> AgGrid:
     """Render Grid"""
     # Infer basic colDefs from dataframe types
     gb = GridOptionsBuilder.from_dataframe(df)
@@ -117,7 +125,7 @@ def render_grid(df: pd.DataFrame,
     # Set all columns to be filterable
     for col in column_defs:
         col['filter'] = False        
-    with h_data_options: 
+    with h_filter: 
         columns_to_show = st.multiselect('Display columns:',
                         help = 'Pick columns to display in the grid',
                                          options=df.columns,
