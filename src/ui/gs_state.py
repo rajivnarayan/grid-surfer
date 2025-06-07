@@ -22,7 +22,8 @@ def init_state():
         st.session_state['data_file'] = None
     if 'data_select' not in st.session_state:
         st.session_state['data_select'] = None
-
+    if 'status_bar' not in st.session_state:
+        st.session_state['status_bar'] = None
 
 def set_state(id, key, value):
     if id not in st.session_state:

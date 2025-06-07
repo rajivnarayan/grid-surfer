@@ -35,6 +35,7 @@ def init_custom_style():
     </style>
     """, unsafe_allow_html=True)    
 
+
 def get_df_column_types(df: pd.DataFrame) -> dict:
     is_numeric=df.dtypes!='object'
     column_types={}
@@ -42,6 +43,7 @@ def get_df_column_types(df: pd.DataFrame) -> dict:
     column_types['num_columns']=df.columns[is_numeric].tolist()
     column_types['cat_columns']=df.columns[~is_numeric].tolist()
     return column_types
+
 
 def pick_if_present(reference: list,
                     to_check: list,
@@ -92,6 +94,7 @@ def format_float(f):
     d = Decimal(str(f))
     return d.quantize(Decimal(1)) if d == d.to_integral() else d.normalize()
 
+
 def transform_nlogp(p: list[float], base:int=10) -> float:
     """
     Calculate negative-log p-values 
@@ -108,6 +111,7 @@ def transform_nlogp(p: list[float], base:int=10) -> float:
     min_nz_p = 0.01*np.min(p[p]>0)
     return -np.log(np.clip(p, min_nz_p, 1))/np.log(base)
 
+
 def set_chart_name(chart: alt.Chart,
                    filename: str) -> alt.Chart:
     # set chart save filename and actions
@@ -121,3 +125,9 @@ def set_chart_name(chart: alt.Chart,
         }
     }
     return chart
+
+
+def update_status(s: str):
+    """Display string in status bar"""
+    st.session_state['status_bar'].code(s, language='python')
+
