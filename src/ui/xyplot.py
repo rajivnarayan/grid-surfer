@@ -85,9 +85,7 @@ def plot_xy(df: pd.DataFrame, opts:dict, opts_type:dict) -> alt.Chart:
         .properties(width=opts['width'],
                     height=opts['height'])
         )
-    
-    #reg = chart.transform_regression(opts['x_axis'], opts['y_axis']).mark_line()
-    #chart = alt.layer(chart, reg)
+
 
     chart = (chart
              .configure_axis(labelFontSize=16,

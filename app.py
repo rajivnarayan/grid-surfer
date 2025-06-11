@@ -4,8 +4,6 @@ from src.ui.gs_body import render_body
 from src.ui import gs_utils as gsu
 from src.ui import gs_state
 
-# app version
-app_version = gsu.get_version()
 
 st.set_page_config(
     page_title="Grid Surfer",
@@ -15,9 +13,11 @@ st.set_page_config(
     menu_items={
         'Get Help': 'https://github.com/rajivnarayan/grid-surfer/',
         'Report a bug': "https://github.com/rajivnarayan/grid-surfer/",
-        'About': f"""Grid Surfer - Explore tabular datasets    
-                     Version: `{app_version}`"""
+        'About': "Grid Surfer - Explore tabular datasets"
     })
+
+# app version
+app_version = gsu.get_version()
 
 # setup custom styles
 gsu.init_custom_style()
