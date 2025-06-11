@@ -94,7 +94,7 @@ def get_dist_options(ctypes):
             with st.popover('Fine tune',
                             icon=':material/tune:',
                             use_container_width=True).container(
-                                height=300):
+                                height=400):
                 # scale properties
                 opts['plot_name'] = st.text_input('Plot name:',
                                                    'xy_plot',
