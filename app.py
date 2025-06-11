@@ -4,6 +4,9 @@ from src.ui.gs_body import render_body
 from src.ui import gs_utils as gsu
 from src.ui import gs_state
 
+# app version
+app_version = gsu.get_version()
+
 st.set_page_config(
     page_title="Grid Surfer",
     page_icon="assets/favicon.ico",
@@ -12,7 +15,8 @@ st.set_page_config(
     menu_items={
         'Get Help': 'https://github.com/rajivnarayan/grid-surfer/',
         'Report a bug': "https://github.com/rajivnarayan/grid-surfer/",
-        'About': "Grid Surfer - Explore tabular datasets"
+        'About': f"""Grid Surfer - Explore tabular datasets    
+                     Version: `{app_version}`"""
     })
 
 # setup custom styles
@@ -21,15 +25,18 @@ gsu.init_custom_style()
 # initialize session state
 gs_state.init_state()
 
+
+
 @st.dialog('Grid Surfer')
 def show_help():
-    st.markdown('''
-                &copy; Rajiv Narayan, 2025
-                
+    st.markdown(f'''                
+                &copy; Rajiv Narayan, 2025    
+                Version: `{app_version}`    
+
                 GridSurfer is a web application for exploring tabular datasets.
 
                 **Features:**
-                - Supports tabular data in CSV, TSV or JSON format
+                - Load tabular data in CSV, TSV or JSON format
                 - Get descriptive statistics on numeric and categorical fields
                 - Visualize univariate and bi-variate distributions via       
                 histograms, dot and scatter plots

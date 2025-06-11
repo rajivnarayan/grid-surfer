@@ -80,16 +80,22 @@ def plot_xy(df: pd.DataFrame, opts:dict, opts_type:dict) -> alt.Chart:
         alt.Chart(data=df)
         .mark_point(**mark_kwds)
         .encode(**kwds)
-        .configure_axis(labelFontSize=16,
-                        titleFontSize=16,
-                        titleFontWeight='bold')
-        .configure_view(stroke = '#808080',
-                        strokeWidth = 1.5)                            
         .add_selection(selection)
         .transform_filter(selection)
         .properties(width=opts['width'],
                     height=opts['height'])
         )
+    
+    #reg = chart.transform_regression(opts['x_axis'], opts['y_axis']).mark_line()
+    #chart = alt.layer(chart, reg)
+
+    chart = (chart
+             .configure_axis(labelFontSize=16,
+                        titleFontSize=16,
+                        titleFontWeight='bold')
+             .configure_view(stroke = '#808080',
+                        strokeWidth = 1.5))
+    
     chart = gsu.set_chart_name(chart, opts['plot_name'])
     return chart
 
@@ -129,8 +135,8 @@ def get_xy_options(ctypes):
             st.markdown('**Scatter Settings**')
             with st.popover('Fine tune', 
                             icon=':material/tune:',
-                            use_container_width=False).container(
-                                height=300):
+                            use_container_width=True).container(
+                                height=400):
                 # scale properties
                 opts['plot_name'] = st.text_input('Plot name:',
                                                    'xy_plot',

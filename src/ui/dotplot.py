@@ -114,15 +114,15 @@ def plot_dot(df: pd.DataFrame,
         chart = chart.facet(**facet_kwds)
 
     chart = (chart
-                .configure_axis(
-                    labelFontSize = 16,
-                     titleFontSize = 16,
-                     titleFontWeight = 'bold',
-                     labelLimit = 200)
-                 .configure_view(
-                    stroke = '#808080',
-                    strokeWidth = 1.5)
-                    )
+             .configure_axis(
+                labelFontSize = 16,
+                    titleFontSize = 16,
+                    titleFontWeight = 'bold',
+                    labelLimit = 200)
+             .configure_view(
+                stroke = '#808080',
+                strokeWidth = 1.5)
+            )
     return chart
 
 def get_dot_options(ctypes, widget_id = 'dot_'):
@@ -146,7 +146,7 @@ def get_dot_options(ctypes, widget_id = 'dot_'):
             with st.popover('Fine tune', 
                             icon=':material/tune:', 
                             use_container_width=True).container(
-                                height=300):
+                                height=400):
                 opts['plot_name'] = st.text_input('Plot name:',
                                                    'xy_plot',
                                                      max_chars=50)  

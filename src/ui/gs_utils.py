@@ -2,6 +2,7 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import streamlit as st
+import subprocess
 from decimal import Decimal
 
 def init_custom_style():
@@ -131,3 +132,11 @@ def update_status(s: str):
     """Display string in status bar"""
     st.session_state['status_bar'].code(s, language='python')
 
+@st.cache_data
+def get_version()->str:
+    """Get git tag or fallback to hash"""
+    return (subprocess
+            .check_output(['git', 'describe', '--always'])
+            .decode('ascii')
+            .strip()
+    )
