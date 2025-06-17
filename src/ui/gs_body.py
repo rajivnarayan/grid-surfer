@@ -1,5 +1,5 @@
 import streamlit as st
-from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder
+from st_aggrid import AgGrid, DataReturnMode, GridOptionsBuilder, ColumnsAutoSizeMode
 import pandas as pd
 from pandas.api.types import (
     is_categorical_dtype,
@@ -62,7 +62,7 @@ def render_body(h_filter):
                              expanded=True,
                              icon=':material/insert_chart:')
         h_grid = st.expander('View Table',
-                             expanded=False,
+                             expanded=True,
                              icon=':material/table_view:')
         
         # Data table
@@ -101,8 +101,9 @@ def render_grid(df: pd.DataFrame,
     """Render Grid"""
     # Infer basic colDefs from dataframe types
     gb = GridOptionsBuilder.from_dataframe(df)
-    opt = {"rowSelection": {"mode": "multiRow"}, 
-           "autoSizeStrategy" : {"type": 'fitGridWidth'},}
+    # opt = {"rowSelection": {"mode": "multiRow"}, 
+    #        "autoSizeStrategy" : {"type": 'fitGridWidth'},}
+    opt = {"rowSelection": {"mode": "multiRow"}}
     gb.configure_grid_options(**opt)
     # customize gridOptions
     gb.configure_default_column(
@@ -111,6 +112,7 @@ def render_grid(df: pd.DataFrame,
         alwaysShowVerticalScroll=False,
         filterable=False,        
         groupable=True,
+        resizable = True,
         editable=False)        
     # Note the sidebar is only available with the enterprise version
     # i.e. set enable_enterprise_modules=True in AgGrid() call
@@ -124,7 +126,8 @@ def render_grid(df: pd.DataFrame,
     column_defs = gridOptions['columnDefs']
     # Set all columns to be filterable
     for col in column_defs:
-        col['filter'] = False        
+        col['filter'] = False
+  
     with h_filter: 
         columns_to_show = st.multiselect('Display columns:',
                         help = 'Pick columns to display in the grid',
@@ -132,15 +135,16 @@ def render_grid(df: pd.DataFrame,
                                          default=df.columns)
 
     columns_to_hide=set(df.columns).difference(columns_to_show)
+
     for col in column_defs:
         if col['headerName'] in columns_to_hide:
-            col['hide']=True
+            col['hide'] = True
 
-    grid = AgGrid(df, 
-                gridOptions=gridOptions,
-                fit_columns_on_grid_load=True,
-                enable_enterprise_modules=False,
-                data_return_mode=DataReturnMode.FILTERED_AND_SORTED)    
+    grid = AgGrid(df,
+                  gridOptions=gridOptions,
+                  fit_columns_on_grid_load=True,
+                  data_return_mode=DataReturnMode.FILTERED_AND_SORTED)
+    
     return grid
 
 

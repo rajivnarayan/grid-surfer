@@ -38,6 +38,6 @@
 	// specify non-root user if default docker user is root
 // "remoteUser": "node",
 	"mounts": [
-		"source=${env:HOME}${env:USERPROFILE}/.aws,target=/root/.aws,type=bind"
+//		"source=${env:HOME}${env:USERPROFILE}/.aws,target=/root/.aws,type=bind"
 	]
 }
