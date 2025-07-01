@@ -27,7 +27,7 @@ def plot_xy(df: pd.DataFrame, opts:dict, opts_type:dict) -> alt.Chart:
                       scale=gsu.get_axis_scale(opts['x_scale']),
                       axis=alt.Axis(tickCount=9, format = '2.4g')), 
             'y': alt.Y(opts['y_axis'], 
-                       title=opts['x_axis'],
+                       title=opts['y_axis'],
                        scale = gsu.get_axis_scale(opts['y_scale']),
                        axis = alt.Axis(tickCount=9, format = '2.4g')),
             }
