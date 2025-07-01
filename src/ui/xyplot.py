@@ -23,29 +23,34 @@ def plot_xy(df: pd.DataFrame, opts:dict, opts_type:dict) -> alt.Chart:
     """Generate XY plot"""
     mark_kwds={k: opts.get(k) for k in opts_type['mark']}
     kwds={'x' : alt.X(opts['x_axis'], 
-                scale = gsu.get_axis_scale(opts['x_scale']),
-                axis=alt.Axis(tickCount=9, format = '2.4g')), 
+                      title=opts['x_axis'],
+                      scale=gsu.get_axis_scale(opts['x_scale']),
+                      axis=alt.Axis(tickCount=9, format = '2.4g')), 
             'y': alt.Y(opts['y_axis'], 
-                scale = gsu.get_axis_scale(opts['y_scale']),
-                axis = alt.Axis(tickCount=9, format = '2.4g')),
+                       title=opts['x_axis'],
+                       scale = gsu.get_axis_scale(opts['y_scale']),
+                       axis = alt.Axis(tickCount=9, format = '2.4g')),
             }
     tooltips=opts['add_tooltips'] or []
     select_fields=[]
-    facet_header=alt.Header(titleFontSize=20,
-                            labelFontSize=20, 
-                            labelAnchor='middle', 
-                            labelColor='#808080', 
-                            labelFontWeight='normal',
-                            titleFontWeight='bold',
-                            titleAnchor='middle', 
-                            labelAlign='center')
+    facet_kwds = {}
+    facet_header = alt.Header(titleFontSize=20,
+                              labelFontSize=20,
+                              labelAnchor='middle',
+                              labelColor='#808080',
+                              labelFontWeight='normal',
+                              titleFontWeight='bold',
+                              titleAnchor='middle',
+                              labelAlign='center')
     
     if opts['column_facet'] is not None:
-        kwds['column'] = alt.Facet(opts['column_facet'], header=facet_header)
+        facet_kwds['column'] = alt.Facet(opts['column_facet'],
+                                         header=facet_header)
         #tooltips.extend([opts['column']])
 
     if opts['row_facet'] is not None:
-        kwds['row'] = alt.Facet(opts['row_facet'], header=facet_header)
+        facet_kwds['row'] = alt.Facet(opts['row_facet'],
+                                      header=facet_header)
         #tooltips.extend([opts['row']])
 
     if opts['color_by'] is not None:
@@ -72,27 +77,43 @@ def plot_xy(df: pd.DataFrame, opts:dict, opts_type:dict) -> alt.Chart:
     kwds['tooltip']=tooltips
     
     if select_fields:
-        selection=alt.selection_multi(fields=select_fields)
+        selection=alt.selection_point(fields=select_fields)
     else:
-        selection=alt.selection_multi()
+        selection=alt.selection_point()
     
     chart=(
         alt.Chart(data=df)
         .mark_point(**mark_kwds)
         .encode(**kwds)
-        .add_selection(selection)
+        .add_params(selection)
         .transform_filter(selection)
         .properties(width=opts['width'],
                     height=opts['height'])
         )
 
+    if opts['show_average']:
+        avg_value = (alt.Chart(df)
+                     .mark_point(filled=True,
+                                 strokeWidth=4,
+                                 size = 120,
+                                 opacity=0.8)
+                     .encode(x=alt.X(opts['x_axis'],
+                                     aggregate=opts['average_measure']).stack(None),
+                             y=alt.Y(opts['y_axis'],
+                                     aggregate=opts['average_measure']),
+                             color = kwds.get('color', alt.Undefined)
+                             )
+                    )
+        chart = alt.layer(chart, avg_value)
+    if facet_kwds:
+        chart = chart.facet(**facet_kwds)
 
     chart = (chart
              .configure_axis(labelFontSize=16,
                         titleFontSize=16,
                         titleFontWeight='bold')
-             .configure_view(stroke = '#808080',
-                        strokeWidth = 1.5))
+             .configure_view(stroke='#808080',
+                        strokeWidth=1.5))
     
     chart = gsu.set_chart_name(chart, opts['plot_name'])
     return chart
@@ -154,7 +175,7 @@ def get_xy_options(ctypes):
                                         step=25,
                                         value=350)
                 # mark properties
-                opts['agg_average'] = st.selectbox('Show Averages:',
+                opts['average_measure'] = st.selectbox('Average measure:',
                                             ['median', 'mean'],
                                             index=0)
                 opts['opacity'] = st.slider('Opacity:',
@@ -167,6 +188,7 @@ def get_xy_options(ctypes):
                                                 **mark_props['color'])
                 opts['filled'] = st.checkbox('Fill Markers:',
                                             **mark_props['filled'])
+            opts['show_average'] = st.checkbox('Show Averages', value = False)
             opts['x_axis'] = st.selectbox('X-Axis:',
                                         ctypes['num_columns'],
                                         index=default_x)
