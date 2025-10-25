@@ -1,0 +1,52 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache
+.coverage
+
+# Virtual environments
+.venv
+venv/
+.env
+
+# Development
+.devcontainer/
+.vscode/
+.idea/
+
+# Documentation
+*.md
+!README.md
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Cache
+.ruff_cache/
+.mypy_cache/
+
+# Tests
+tests/
+test_*.py
+*_test.py
+
+# Docker
+Dockerfile_orig
+docker-compose.yml
+build-docker.sh
+deploy.sh
+
+# Misc
+TODO.md
+screencast_notes.md
+change_author.sh

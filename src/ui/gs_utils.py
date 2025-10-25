@@ -134,9 +134,17 @@ def update_status(s: str):
 
 @st.cache_data
 def get_version()->str:
-    """Get git tag or fallback to hash"""
-    return (subprocess
-            .check_output(['git', 'describe', '--always'])
-            .decode('ascii')
-            .strip()
-    )
+    """Get version from build-time generated file or fallback to git"""
+    try:
+        with open('version.txt', 'r') as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        # Fallback for development environment
+        try:
+            return (subprocess
+                    .check_output(['git', 'describe', '--always'])
+                    .decode('ascii')
+                    .strip()
+            )
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return "latest"
