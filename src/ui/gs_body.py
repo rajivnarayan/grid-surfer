@@ -74,27 +74,39 @@ def render_body(h_filter):
             grid_return = render_grid(df, h_filter)
     
         # Visualization selector
-        # Use pills since st.tabs do not support independent rendering
         with h_plot:
-            plot_select = st.pills("Plots",
-                                ["Describe", "Histogram", "Dot", "Scatter"],
-                                default='Describe',
-                                label_visibility = 'collapsed')
-            with st.container(border=False):
-                if plot_select=='Describe':
-                    # Descriptive statistics
-                    describe.show_description(grid_return)
-                if plot_select=='Histogram':
-                    # Histogram
-                    _ = distplot.make_dist_plot(grid_return)
-                elif plot_select=='Dot':
-                    # Dot plot
-                    _ = dotplot.make_dot_plot(grid_return)            
-                elif plot_select=='Scatter':
-                    # Scatter plot
-                    _ = xyplot.make_xy_plot(grid_return)            
+            render_plots(grid_return)
 
     return None
+
+
+@st.fragment
+def render_plots(grid_return: AgGrid):
+    """Render the plot type selector and the selected plot.
+
+    Isolated as a fragment so that changing a plot's own options
+    (bins, axes, colors, ...) only reruns this section instead of the
+    whole app, which would otherwise re-render the grid and re-transfer
+    its full dataset on every plot-option change.
+    """
+    # Use pills since st.tabs do not support independent rendering
+    plot_select = st.pills("Plots",
+                        ["Describe", "Histogram", "Dot", "Scatter"],
+                        default='Describe',
+                        label_visibility = 'collapsed')
+    with st.container(border=False):
+        if plot_select=='Describe':
+            # Descriptive statistics
+            describe.show_description(grid_return)
+        if plot_select=='Histogram':
+            # Histogram
+            _ = distplot.make_dist_plot(grid_return)
+        elif plot_select=='Dot':
+            # Dot plot
+            _ = dotplot.make_dot_plot(grid_return)
+        elif plot_select=='Scatter':
+            # Scatter plot
+            _ = xyplot.make_xy_plot(grid_return)
 
 def render_grid(df: pd.DataFrame,
                 h_filter) -> AgGrid:

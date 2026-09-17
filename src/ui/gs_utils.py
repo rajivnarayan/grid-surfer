@@ -8,6 +8,10 @@ from decimal import Decimal
 def init_custom_style():
     """Custom CSS styling for widgets
     """
+    # Altair's default transformer raises MaxRowsError above 5000 rows.
+    # Charts here don't rely on server-side rendering, so lifting the cap
+    # is safe and lets larger datasets be plotted.
+    alt.data_transformers.disable_max_rows()
     st.markdown(
     """<style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap'); 
