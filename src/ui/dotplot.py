@@ -140,74 +140,14 @@ def get_dot_options(ctypes, widget_id = 'dot_'):
     opts_type = {'mark': ['type', 'size', 'opacity', 
                           'strokeWidth', 'color', 'filled']}
     #with st.expander('Parameters:', expanded=True):
-    with st.container(border=True):
-        st.write('**Dot Settings**')
-        with st.popover('Fine tune', 
-                        icon=':material/tune:', 
-                        use_container_width=True).container(
-                            height=400):
-            opts['plot_name'] = st.text_input('Plot name:',
-                                               'xy_plot',
-                                                 max_chars=50)  
-            opts['x_scale'] = st.selectbox('X-Axis Scale:', 
-                                           options=['linear',
-                                                    'log2',
-                                                    'log10'], 
-                                                    index=0)
-            opts['agg_average'] = st.selectbox('Average metric:',
-                                        ['mean', 'median'],
-                                        index=0)
-            opts['agg_dispersion'] = st.selectbox('Variance metric:',
-                                            ['stdev', 'iqr', 'stderr', 
-                                             'ci'],
-                                            index=0)                     
-            opts['width'] = st.slider('Plot Width:', 
-                                      min_value = 50, 
-                                      max_value=1000, 
-                                      step = 25, 
-                                      value = 350)
-            opts['height'] = st.slider('Plot Height:', 
-                                       min_value = 50, 
-                                       max_value=1000, 
-                                       step = 25, 
-                                       value = 350)
-
-            opts['x_title'] = st.text_input('X-Axis Title:', None)
-            opts['y_title'] = st.text_input('Y-Axis Title:', None)
-            opts['type'] = st.selectbox('Marker:', ['point', 'tick'], 
-                                        index = 0)
-            opts['size'] = st.slider('Marker Size:', 
-                                        min_value = 5, max_value = 500, 
-                                        step = 5, value = 15,
-                                        key=widget_id + 'size')
-            opts['strokeWidth'] = st.slider('Stroke Width:', 
-                                                min_value = 0.0,
-                                                max_value = 10.0,
-                                                step = 0.5, 
-                                                value = 1.0,
-                                                key = widget_id+
-                                                'strokeWidth')
-            opts['opacity'] = st.slider('Opacity:', 
-                                            min_value = 0.0, 
-                                            max_value = 1.0, 
-                                            step = 0.1, 
-                                            value = 0.8,
-                                            key=widget_id+'opacity')        
-            opts['filled'] = st.checkbox('Fill Markers:', value = False,
-                                        key=widget_id + 'filled')
-            opts['color'] = st.color_picker('Marker Color:', 
-                                            value='#7570b2',
-                                              key=widget_id + 'color')   
-            opts['default_agg_color'] = st.color_picker('Aggregate Color:',
-                                                        value='#d95f02',
-                                                        key=widget_id + 
-                                                        'default_agg_color')
-
+    with st.popover('Dot Settings',
+                    icon=':material/tune:',
+                    use_container_width=True).container(height=400):
         agg_opts = {'show_points': 'Dot',
                     'show_boxplot': 'Boxplot',
                     'show_average': 'Avg',
                     'show_dispersion': 'Var'}
-        show_agg = st.segmented_control('Show', 
+        show_agg = st.segmented_control('Show',
                                         label_visibility='collapsed',
                             options=agg_opts.keys(),
                             format_func=lambda option: agg_opts[option],
@@ -226,13 +166,13 @@ def get_dot_options(ctypes, widget_id = 'dot_'):
         opts['show_dispersion'] = 'show_dispersion' in show_agg
         opts['x_axis'] = st.selectbox('X-Axis:',
                                     ctypes['num_columns'],
-                                    index=default_x, 
+                                    index=default_x,
                                     key=widget_id + 'x_axis')
         opts['y_axis'] = st.selectbox('Y-Axis:',
                                     ctypes['cat_columns'],
                                     index=default_y,
                                     key=widget_id + 'y_axis')
-        opts['color_by'] = st.selectbox('Color:', 
+        opts['color_by'] = st.selectbox('Color:',
                                         ctypes['cat_columns'],
                                         label_visibility='collapsed',
                                         placeholder='Color by',
@@ -250,5 +190,62 @@ def get_dot_options(ctypes, widget_id = 'dot_'):
                                         placeholder='Row facet',
                                         index=None,
                                         key=widget_id + 'row_facet')
- 
+        st.divider()
+        opts['plot_name'] = st.text_input('Plot name:',
+                                           'xy_plot',
+                                             max_chars=50)
+        opts['x_scale'] = st.selectbox('X-Axis Scale:',
+                                       options=['linear',
+                                                'log2',
+                                                'log10'],
+                                                index=0)
+        opts['agg_average'] = st.selectbox('Average metric:',
+                                    ['mean', 'median'],
+                                    index=0)
+        opts['agg_dispersion'] = st.selectbox('Variance metric:',
+                                        ['stdev', 'iqr', 'stderr',
+                                         'ci'],
+                                        index=0)
+        opts['width'] = st.slider('Plot Width:',
+                                  min_value = 50,
+                                  max_value=1000,
+                                  step = 25,
+                                  value = 350)
+        opts['height'] = st.slider('Plot Height:',
+                                   min_value = 50,
+                                   max_value=1000,
+                                   step = 25,
+                                   value = 350)
+
+        opts['x_title'] = st.text_input('X-Axis Title:', None)
+        opts['y_title'] = st.text_input('Y-Axis Title:', None)
+        opts['type'] = st.selectbox('Marker:', ['point', 'tick'],
+                                    index = 0)
+        opts['size'] = st.slider('Marker Size:',
+                                    min_value = 5, max_value = 500,
+                                    step = 5, value = 15,
+                                    key=widget_id + 'size')
+        opts['strokeWidth'] = st.slider('Stroke Width:',
+                                            min_value = 0.0,
+                                            max_value = 10.0,
+                                            step = 0.5,
+                                            value = 1.0,
+                                            key = widget_id+
+                                            'strokeWidth')
+        opts['opacity'] = st.slider('Opacity:',
+                                        min_value = 0.0,
+                                        max_value = 1.0,
+                                        step = 0.1,
+                                        value = 0.8,
+                                        key=widget_id+'opacity')
+        opts['filled'] = st.checkbox('Fill Markers:', value = False,
+                                    key=widget_id + 'filled')
+        opts['color'] = st.color_picker('Marker Color:',
+                                        value='#7570b2',
+                                          key=widget_id + 'color')
+        opts['default_agg_color'] = st.color_picker('Aggregate Color:',
+                                                    value='#d95f02',
+                                                    key=widget_id +
+                                                    'default_agg_color')
+
     return (opts, opts_type)
