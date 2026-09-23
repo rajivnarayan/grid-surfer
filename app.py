@@ -29,7 +29,7 @@ gs_state.init_state()
 
 @st.dialog('Grid Surfer')
 def show_help():
-    st.markdown(f'''                
+    st.markdown(f'''
                 &copy; Rajiv Narayan, 2025    
                 Version: `{app_version}`    
 
@@ -48,16 +48,12 @@ def show_help():
                    url = 'https://github.com/rajivnarayan/grid-surfer/',
                    use_container_width=True)
     
-def gs_sidebar():
-    with st.sidebar:
-        st.logo('assets/logo-main.png', 
-                size='medium', 
-                icon_image = 'assets/logo-main.png')
-        st.button('About', 
-                  icon = ':material/info:',
-                  use_container_width=True,
-                  type = 'secondary',
-                  on_click=show_help)
+def gs_logo():
+    # st.logo renders in the app's upper-left corner on its own; it
+    # doesn't need a sidebar to be present.
+    st.logo('assets/logo-main.png',
+            size='medium',
+            icon_image = 'assets/logo-main.png')
 
 
 @st.dialog("Load data")
@@ -100,7 +96,7 @@ def on_data_select_change():
 def load_data():
     option_map = {'File': ":material/folder_open: File",
                   'Demo': ":material/auto_stories: Examples"}
-    col_load, col_status = st.columns([0.8, 0.2])
+    col_load, col_status, col_about = st.columns([0.7, 0.2, 0.1])
     with col_load:
         st.segmented_control(
                         "Load Data",
@@ -110,10 +106,16 @@ def load_data():
                         key = 'data_select',
                         on_change=on_data_select_change,
                         label_visibility = 'collapsed')
+    with col_about:
+        st.button('About',
+                  icon = ':material/info:',
+                  use_container_width=True,
+                  type = 'secondary',
+                  on_click=show_help)
     st.session_state['status_bar'] = col_status
 
 def main():
-    gs_sidebar()        
+    gs_logo()
     load_data()
     h_filter = st.expander('Filter Data',
                            expanded=False,
