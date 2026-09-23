@@ -23,26 +23,36 @@ def read_data(fd, file_type):
         df = pd.json_normalize(json.load(fd))
     else:
         st.error(f"Unsupported file format: {file_type}")
+        df = None
     return df
 
 @st.cache_data
 def data_loader(uploaded_file):
-    
+
     if isinstance(uploaded_file, io.BytesIO):
         try:
-            df = read_data(uploaded_file, uploaded_file.type)
+            # Read via a fresh, independent buffer rather than the
+            # UploadedFile itself: pd.read_csv() consumes it, and since
+            # it's the same object kept in session_state, a later rerun
+            # would otherwise re-parse an already-exhausted stream
+            # (Streamlit's cache hash for UploadedFile also includes its
+            # read position, so a moved position also busts the cache).
+            df = read_data(io.BytesIO(uploaded_file.getvalue()),
+                           uploaded_file.type)
         except Exception as e:
             st.error("An error occured loading the file.")
-            st.exception(e) 
+            st.exception(e)
+            df = None
     elif isinstance(uploaded_file, tuple):
         if uploaded_file.source == 'vega-dataset':
             df = local_data(uploaded_file.file)
-        elif uploaded_file.source == 'local-dataset':                
+        elif uploaded_file.source == 'local-dataset':
             try:
                 df = read_data(open(uploaded_file.file), uploaded_file.type)
             except Exception as e:
                 st.error("An error occured loading the file.")
                 st.exception(e)
+                df = None
     return df
 
 def render_body(h_filter):
@@ -74,27 +84,39 @@ def render_body(h_filter):
             grid_return = render_grid(df, h_filter)
     
         # Visualization selector
-        # Use pills since st.tabs do not support independent rendering
         with h_plot:
-            plot_select = st.pills("Plots",
-                                ["Describe", "Histogram", "Dot", "Scatter"],
-                                default='Describe',
-                                label_visibility = 'collapsed')
-            with st.container(border=False):
-                if plot_select=='Describe':
-                    # Descriptive statistics
-                    describe.show_description(grid_return)
-                if plot_select=='Histogram':
-                    # Histogram
-                    _ = distplot.make_dist_plot(grid_return)
-                elif plot_select=='Dot':
-                    # Dot plot
-                    _ = dotplot.make_dot_plot(grid_return)            
-                elif plot_select=='Scatter':
-                    # Scatter plot
-                    _ = xyplot.make_xy_plot(grid_return)            
+            render_plots(grid_return)
 
     return None
+
+
+@st.fragment
+def render_plots(grid_return: AgGrid):
+    """Render the plot type selector and the selected plot.
+
+    Isolated as a fragment so that changing a plot's own options
+    (bins, axes, colors, ...) only reruns this section instead of the
+    whole app, which would otherwise re-render the grid and re-transfer
+    its full dataset on every plot-option change.
+    """
+    # Use pills since st.tabs do not support independent rendering
+    plot_select = st.pills("Plots",
+                        ["Describe", "Histogram", "Dot", "Scatter"],
+                        default='Describe',
+                        label_visibility = 'collapsed')
+    with st.container(border=False):
+        if plot_select=='Describe':
+            # Descriptive statistics
+            describe.show_description(grid_return)
+        if plot_select=='Histogram':
+            # Histogram
+            _ = distplot.make_dist_plot(grid_return)
+        elif plot_select=='Dot':
+            # Dot plot
+            _ = dotplot.make_dot_plot(grid_return)
+        elif plot_select=='Scatter':
+            # Scatter plot
+            _ = xyplot.make_xy_plot(grid_return)
 
 def render_grid(df: pd.DataFrame,
                 h_filter) -> AgGrid:

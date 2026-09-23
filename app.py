@@ -64,14 +64,14 @@ def gs_sidebar():
 def data_loader():
     input_select = st.session_state['data_select']
     if input_select == 'File':
-        selected_ds = st.file_uploader("**Explore your data**", 
+        selected_ds = st.file_uploader("**Explore your data**",
                         type=["csv", "txt", "tsv", "json"],
                         label_visibility='visible')
         if selected_ds:
             st.session_state['data_file'] = selected_ds
             st.rerun()
 
-    else:   
+    elif input_select == 'Demo':
         ds_list = list(st.session_state['examples'].keys())
         demo_choice = st.session_state.get('demo_choice')
         if demo_choice is not None:
@@ -91,19 +91,25 @@ def data_loader():
             st.rerun()
 
 
+def on_data_select_change():
+    # segmented_control toggles the clicked segment off (back to None) if it
+    # was already selected; only open the dialog on an actual selection.
+    if st.session_state['data_select'] is not None:
+        data_loader()
+
 def load_data():
-    option_map = {'File': ":material/folder_open: File", 
+    option_map = {'File': ":material/folder_open: File",
                   'Demo': ":material/auto_stories: Examples"}
     col_load, col_status = st.columns([0.8, 0.2])
     with col_load:
         st.segmented_control(
-                        "Load Data",                                         
+                        "Load Data",
                         options = option_map.keys(),
                         format_func=lambda option: option_map[option],
                         default = None,
                         key = 'data_select',
-                        on_change=data_loader,
-                        label_visibility = 'collapsed') 
+                        on_change=on_data_select_change,
+                        label_visibility = 'collapsed')
     st.session_state['status_bar'] = col_status
 
 def main():

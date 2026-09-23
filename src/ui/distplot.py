@@ -88,57 +88,56 @@ def get_dist_options(ctypes):
     opts = {}
     opts_type = {'mark':['color'], 'scale':['y_scale']}
     #with st.expander('Parameters:', expanded=True):
-    with st.sidebar:
-        with st.container(border=True):
-            st.write('**Histogram Settings**')
-            with st.popover('Fine tune',
-                            icon=':material/tune:',
-                            use_container_width=True).container(
-                                height=400):
-                # scale properties
-                opts['plot_name'] = st.text_input('Plot name:',
-                                                   'xy_plot',
-                                                     max_chars=50)
-                opts['y_scale'] = st.selectbox('Y-Axis Scale:', 
-                                            options=['linear', 
-                                                     'log2',
-                                                     'log10'],
-                                                     index=0)
-                opts['width'] = st.slider('Plot width:',
-                                        min_value=50,
-                                        max_value=1000,
-                                        step=25,
-                                        value=350)
-                opts['height'] = st.slider('Plot height:',
-                                        min_value=50,
-                                        max_value=1000,
-                                        step=25,
-                                        value=350)
-                # mark properties
-                opts['color'] = st.color_picker('Color:', value='#4e79a7')
+    with st.container(border=True):
+        st.write('**Histogram Settings**')
+        with st.popover('Fine tune',
+                        icon=':material/tune:',
+                        use_container_width=True).container(
+                            height=400):
+            # scale properties
+            opts['plot_name'] = st.text_input('Plot name:',
+                                               'xy_plot',
+                                                 max_chars=50)
+            opts['y_scale'] = st.selectbox('Y-Axis Scale:', 
+                                        options=['linear', 
+                                                 'log2',
+                                                 'log10'],
+                                                 index=0)
+            opts['width'] = st.slider('Plot width:',
+                                    min_value=50,
+                                    max_value=1000,
+                                    step=25,
+                                    value=350)
+            opts['height'] = st.slider('Plot height:',
+                                    min_value=50,
+                                    max_value=1000,
+                                    step=25,
+                                    value=350)
+            # mark properties
+            opts['color'] = st.color_picker('Color:', value='#4e79a7')
                             
-            opts['x_axis'] = st.selectbox('X-Axis:', 
-                                        ctypes['num_columns'],
-                                        index=default_x)
-            opts['bins'] = st.slider('Bins:',
-                                    min_value=5,
-                                    max_value=200,
-                                    step=5,
-                                    value=30 )
-            opts['color_by'] = st.selectbox('Color:',
+        opts['x_axis'] = st.selectbox('X-Axis:', 
+                                    ctypes['num_columns'],
+                                    index=default_x)
+        opts['bins'] = st.slider('Bins:',
+                                min_value=5,
+                                max_value=200,
+                                step=5,
+                                value=30 )
+        opts['color_by'] = st.selectbox('Color:',
+                                        ctypes['cat_columns'],
+                                        label_visibility='collapsed',
+                                        placeholder='Color by',
+                                        index=None)
+        opts['facet_by_column'] = st.selectbox('Column Facet:',
+                                            ctypes['cat_columns'], 
+                                            label_visibility='visible',
+                                            placeholder='Column facet',  
+                                    help='Select field for column facet',
+                                            index=None)
+        opts['facet_by_row'] = st.selectbox('Row Facet:',
                                             ctypes['cat_columns'],
                                             label_visibility='collapsed',
-                                            placeholder='Color by',
+                                            placeholder='Row facet',
                                             index=None)
-            opts['facet_by_column'] = st.selectbox('Column Facet:',
-                                                ctypes['cat_columns'], 
-                                                label_visibility='visible',
-                                                placeholder='Column facet',  
-                                        help='Select field for column facet',
-                                                index=None)
-            opts['facet_by_row'] = st.selectbox('Row Facet:',
-                                                ctypes['cat_columns'],
-                                                label_visibility='collapsed',
-                                                placeholder='Row facet',
-                                                index=None)
     return (opts, opts_type)

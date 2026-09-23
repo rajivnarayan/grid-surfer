@@ -149,82 +149,81 @@ def get_xy_options(ctypes):
 
     opts={}
     #with st.expander('Parameters:', expanded=True):
-    with st.sidebar:
-        with st.container(border=True):
-            st.markdown('**Scatter Settings**')
-            with st.popover('Fine tune', 
-                            icon=':material/tune:',
-                            use_container_width=True).container(
-                                height=400):
-                # scale properties
-                opts['plot_name'] = st.text_input('Plot name:',
-                                                   'xy_plot',
-                                                     max_chars=50)
-                opts['x_scale'] = st.selectbox('X-Axis Scale:',
-                                                **scale_props['x_scale'])
-                opts['y_scale'] = st.selectbox('Y-Axis Scale:',
-                                                **scale_props['y_scale'])
-                opts['width'] = st.slider('Plot width:',
-                                        min_value=50,
-                                        max_value=1000,
-                                        step=25,
-                                        value=350)
-                opts['height'] = st.slider('Plot height:',
-                                        min_value=50,
-                                        max_value=1000,
-                                        step=25,
-                                        value=350)
-                # mark properties
-                opts['average_measure'] = st.selectbox('Average measure:',
-                                            ['median', 'mean'],
-                                            index=0)
-                opts['opacity'] = st.slider('Opacity:',
-                                            **mark_props['opacity'])
-                opts['size'] = st.slider('Size:',
-                                        **mark_props['size'])
-                opts['strokeWidth'] = st.slider('Stroke Width:',
-                                                **mark_props['strokeWidth'])
-                opts['color'] = st.color_picker('Color:',
-                                                **mark_props['color'])
-                opts['filled'] = st.checkbox('Fill Markers:',
-                                            **mark_props['filled'])
-            opts['show_average'] = st.checkbox('Show Averages', value = False)
-            opts['x_axis'] = st.selectbox('X-Axis:',
-                                        ctypes['num_columns'],
-                                        index=default_x)
-            opts['y_axis'] = st.selectbox('Y-Axis:',
-                                        ctypes['num_columns'],
-                                        index=default_y)
-            opts['color_by'] = st.selectbox('Color:',
+    with st.container(border=True):
+        st.markdown('**Scatter Settings**')
+        with st.popover('Fine tune', 
+                        icon=':material/tune:',
+                        use_container_width=True).container(
+                            height=400):
+            # scale properties
+            opts['plot_name'] = st.text_input('Plot name:',
+                                               'xy_plot',
+                                                 max_chars=50)
+            opts['x_scale'] = st.selectbox('X-Axis Scale:',
+                                            **scale_props['x_scale'])
+            opts['y_scale'] = st.selectbox('Y-Axis Scale:',
+                                            **scale_props['y_scale'])
+            opts['width'] = st.slider('Plot width:',
+                                    min_value=50,
+                                    max_value=1000,
+                                    step=25,
+                                    value=350)
+            opts['height'] = st.slider('Plot height:',
+                                    min_value=50,
+                                    max_value=1000,
+                                    step=25,
+                                    value=350)
+            # mark properties
+            opts['average_measure'] = st.selectbox('Average measure:',
+                                        ['median', 'mean'],
+                                        index=0)
+            opts['opacity'] = st.slider('Opacity:',
+                                        **mark_props['opacity'])
+            opts['size'] = st.slider('Size:',
+                                    **mark_props['size'])
+            opts['strokeWidth'] = st.slider('Stroke Width:',
+                                            **mark_props['strokeWidth'])
+            opts['color'] = st.color_picker('Color:',
+                                            **mark_props['color'])
+            opts['filled'] = st.checkbox('Fill Markers:',
+                                        **mark_props['filled'])
+        opts['show_average'] = st.checkbox('Show Averages', value = False)
+        opts['x_axis'] = st.selectbox('X-Axis:',
+                                    ctypes['num_columns'],
+                                    index=default_x)
+        opts['y_axis'] = st.selectbox('Y-Axis:',
+                                    ctypes['num_columns'],
+                                    index=default_y)
+        opts['color_by'] = st.selectbox('Color:',
+                                        ctypes['cat_columns'],
+                                        label_visibility='collapsed',
+                                        placeholder='Color by',
+                                        index=None)
+        opts['size_by'] = st.selectbox('Size:',
+                                    ctypes['all_columns'],
+                                        label_visibility='collapsed',
+                                        placeholder='Size by',
+                                    index=None)
+        opts['shape_by'] = st.selectbox('Shape:',
+                                        ctypes['all_columns'],
+                                        label_visibility='collapsed',
+                                        placeholder='Shape by',
+                                        index=None)
+        opts['column_facet'] = st.selectbox('Column Facet:',
                                             ctypes['cat_columns'],
                                             label_visibility='collapsed',
-                                            placeholder='Color by',
+                                            placeholder='Column facet',
                                             index=None)
-            opts['size_by'] = st.selectbox('Size:',
-                                        ctypes['all_columns'],
-                                            label_visibility='collapsed',
-                                            placeholder='Size by',
+        opts['row_facet'] = st.selectbox('Row Facet:',
+                                        ctypes['cat_columns'],
+                                        label_visibility='collapsed',
+                                        placeholder='Row facet',
                                         index=None)
-            opts['shape_by'] = st.selectbox('Shape:',
+        opts['add_tooltips'] = st.multiselect('Tooltips:',
                                             ctypes['all_columns'],
                                             label_visibility='collapsed',
-                                            placeholder='Shape by',
-                                            index=None)
-            opts['column_facet'] = st.selectbox('Column Facet:',
-                                                ctypes['cat_columns'],
-                                                label_visibility='collapsed',
-                                                placeholder='Column facet',
-                                                index=None)
-            opts['row_facet'] = st.selectbox('Row Facet:',
-                                            ctypes['cat_columns'],
-                                            label_visibility='collapsed',
-                                            placeholder='Row facet',
-                                            index=None)
-            opts['add_tooltips'] = st.multiselect('Tooltips:',
-                                                ctypes['all_columns'],
-                                                label_visibility='collapsed',
-                                                placeholder='Add tooltips',
-                                                default=names_list)
+                                            placeholder='Add tooltips',
+                                            default=names_list)
 
     opts_type={'mark':list(mark_props), 
                'scale':list(scale_props)}
