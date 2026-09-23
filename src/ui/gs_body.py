@@ -23,26 +23,36 @@ def read_data(fd, file_type):
         df = pd.json_normalize(json.load(fd))
     else:
         st.error(f"Unsupported file format: {file_type}")
+        df = None
     return df
 
 @st.cache_data
 def data_loader(uploaded_file):
-    
+
     if isinstance(uploaded_file, io.BytesIO):
         try:
-            df = read_data(uploaded_file, uploaded_file.type)
+            # Read via a fresh, independent buffer rather than the
+            # UploadedFile itself: pd.read_csv() consumes it, and since
+            # it's the same object kept in session_state, a later rerun
+            # would otherwise re-parse an already-exhausted stream
+            # (Streamlit's cache hash for UploadedFile also includes its
+            # read position, so a moved position also busts the cache).
+            df = read_data(io.BytesIO(uploaded_file.getvalue()),
+                           uploaded_file.type)
         except Exception as e:
             st.error("An error occured loading the file.")
-            st.exception(e) 
+            st.exception(e)
+            df = None
     elif isinstance(uploaded_file, tuple):
         if uploaded_file.source == 'vega-dataset':
             df = local_data(uploaded_file.file)
-        elif uploaded_file.source == 'local-dataset':                
+        elif uploaded_file.source == 'local-dataset':
             try:
                 df = read_data(open(uploaded_file.file), uploaded_file.type)
             except Exception as e:
                 st.error("An error occured loading the file.")
                 st.exception(e)
+                df = None
     return df
 
 def render_body(h_filter):
