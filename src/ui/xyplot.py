@@ -148,45 +148,9 @@ def get_xy_options(ctypes):
                                             y_to_check, default=1)
 
     opts={}
-    #with st.expander('Parameters:', expanded=True):
-    with st.container(border=True):
-        st.markdown('**Scatter Settings**')
-        with st.popover('Fine tune', 
-                        icon=':material/tune:',
-                        use_container_width=True).container(
-                            height=400):
-            # scale properties
-            opts['plot_name'] = st.text_input('Plot name:',
-                                               'xy_plot',
-                                                 max_chars=50)
-            opts['x_scale'] = st.selectbox('X-Axis Scale:',
-                                            **scale_props['x_scale'])
-            opts['y_scale'] = st.selectbox('Y-Axis Scale:',
-                                            **scale_props['y_scale'])
-            opts['width'] = st.slider('Plot width:',
-                                    min_value=50,
-                                    max_value=1000,
-                                    step=25,
-                                    value=350)
-            opts['height'] = st.slider('Plot height:',
-                                    min_value=50,
-                                    max_value=1000,
-                                    step=25,
-                                    value=350)
-            # mark properties
-            opts['average_measure'] = st.selectbox('Average measure:',
-                                        ['median', 'mean'],
-                                        index=0)
-            opts['opacity'] = st.slider('Opacity:',
-                                        **mark_props['opacity'])
-            opts['size'] = st.slider('Size:',
-                                    **mark_props['size'])
-            opts['strokeWidth'] = st.slider('Stroke Width:',
-                                            **mark_props['strokeWidth'])
-            opts['color'] = st.color_picker('Color:',
-                                            **mark_props['color'])
-            opts['filled'] = st.checkbox('Fill Markers:',
-                                        **mark_props['filled'])
+    with st.popover('Scatter Settings',
+                    icon=':material/tune:',
+                    use_container_width=True).container(height=400):
         opts['show_average'] = st.checkbox('Show Averages', value = False)
         opts['x_axis'] = st.selectbox('X-Axis:',
                                     ctypes['num_columns'],
@@ -224,7 +188,40 @@ def get_xy_options(ctypes):
                                             label_visibility='collapsed',
                                             placeholder='Add tooltips',
                                             default=names_list)
+        st.divider()
+        # scale properties
+        opts['plot_name'] = st.text_input('Plot name:',
+                                           'xy_plot',
+                                             max_chars=50)
+        opts['x_scale'] = st.selectbox('X-Axis Scale:',
+                                        **scale_props['x_scale'])
+        opts['y_scale'] = st.selectbox('Y-Axis Scale:',
+                                        **scale_props['y_scale'])
+        opts['width'] = st.slider('Plot width:',
+                                min_value=50,
+                                max_value=1000,
+                                step=25,
+                                value=350)
+        opts['height'] = st.slider('Plot height:',
+                                min_value=50,
+                                max_value=1000,
+                                step=25,
+                                value=350)
+        # mark properties
+        opts['average_measure'] = st.selectbox('Average measure:',
+                                    ['median', 'mean'],
+                                    index=0)
+        opts['opacity'] = st.slider('Opacity:',
+                                    **mark_props['opacity'])
+        opts['size'] = st.slider('Size:',
+                                **mark_props['size'])
+        opts['strokeWidth'] = st.slider('Stroke Width:',
+                                        **mark_props['strokeWidth'])
+        opts['color'] = st.color_picker('Color:',
+                                        **mark_props['color'])
+        opts['filled'] = st.checkbox('Fill Markers:',
+                                    **mark_props['filled'])
 
-    opts_type={'mark':list(mark_props), 
+    opts_type={'mark':list(mark_props),
                'scale':list(scale_props)}
     return (opts, opts_type)

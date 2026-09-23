@@ -55,12 +55,13 @@ def show_description(grid: AgGrid):
 
 def get_describe_options(ctypes, widget_id='describe_'):
     """Get parameters and options"""
-    with st.container(border=True):
-        st.markdown('**Describe Settings**')
+    with st.popover('Describe Settings',
+                    icon=':material/tune:',
+                    use_container_width=True):
         st.selectbox('Group by:',
                     ctypes['cat_columns'],
                     index=None,
                     label_visibility='visible',
-                    help = '''Categorical variable for 
+                    help = '''Categorical variable for
                     calculating grouped statistics of numeric fields''',
                     key=widget_id + 'group_by')
